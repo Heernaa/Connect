@@ -8,7 +8,7 @@
 > la constitución gana. Si el conflicto es inevitable, hay que pedir
 > aprobación explícita y documentar la excepción en el registro de decisiones.
 
-**Estado:** v0.7 — arquitectura y contenido definidos, listo para construir
+**Estado:** v0.8 — método SDD spec-anchored, JavaScript, listo para construir
 **Última actualización:** 2026-10-15
 
 ---
@@ -23,10 +23,11 @@
 | Tipo de producto             | Plataforma web de juegos sencillos con comunidad         |
 | Usuario objetivo             | Personas mayores (60+), con necesidades de accesibilidad |
 | Dispositivos objetivo        | Ordenadores, tablets y móviles (§7)                      |
-| Frontend                     | React + Tailwind CSS                                     |
+| Frontend                     | React + Tailwind CSS, en **JavaScript** (§3.2)           |
 | API / Backend                | FastAPI (Python)                                         |
 | Base de datos                | PostgreSQL                                               |
 | Pruebas E2E                  | Playwright                                               |
+| Método de desarrollo         | SDD spec-anchored (§0.3)                                 |
 | Idioma del código            | Inglés                                                   |
 | Idioma de UI y documentación | Español                                                  |
 | Idioma del contenido de juegos | Español (único, sin multiidioma)                      |
@@ -62,6 +63,54 @@ preguntan.** Las dudas concretas están recogidas en [`dudas.md`](./dudas.md).
 
 > **Nota:** `[DEPLOY_TARGET]` y `[AUTH]` ya no son placeholders: el entorno es
 > local (§7.0) y la autenticación está definida (§2.2, §6.2).
+
+### 0.3 Método de trabajo: SDD spec-anchored
+
+El proyecto se construye con un método **spec-anchored**: la especificación es
+la fuente de verdad, y el código se escribe para cumplirla.
+
+**Qué es una spec**
+
+Una especificación es un documento en `Docs/specs/NNN-<nombre>/` con dos
+archivos:
+
+- `spec.md` — **qué** se construye, con requisitos numerados y verificables.
+- `plan.md` — **cómo** se construirá, con tareas numeradas y seguibles.
+
+Cada spec sigue el ciclo de §4 (especificación → diseño → implementación →
+pruebas → revisión → documentación).
+
+**Implicaciones: son obligatorias**
+
+1. **Nada se implementa sin una spec aprobada que lo cubra.** Si una tarea de
+   código no corresponde a ningún requisito de ninguna spec, no entra.
+2. **Los requisitos se numeran** (`R-001`) y **se verifican**. Nada de "que sea
+   usable" o "que quede bonito": o hay un criterio comprobable, o no es un
+   requisito.
+3. **Cada tarea del plan cita el requisito que implementa.** Sin requisito
+   citado, la tarea no existe.
+4. **Cada test verifica un requisito**, no una implementación. Si el test hay
+   que reescribirlo cada vez que cambia el código por dentro, está mal escrito.
+5. **Código sin requisito que lo justifique se borra.** Es deuda y nada más.
+6. **Cambiar un requisito: primero la spec, después el código.** Nunca al revés.
+   El commit que cambia el requisito y el que ajusta el código pueden ser
+   distintos, pero el orden es ese.
+7. **Una rama por spec**, nombrada `feature/spec-NNN-<slug>`.
+8. **Una spec no se da por terminada** hasta que sus tareas estén marcadas en
+   `plan.md` y sus criterios de aceptación estén satisfechos.
+
+**La regla que resume todas las demás**
+
+> Si el código y la spec discrepan, es un bug en el código o un bug en la spec.
+> **Nunca se arregla modificando solo el código.** La spec se revisa, se acepta
+> o se corrige; y solo entonces el código la sigue.
+
+**Qué se traduce en el día a día**
+
+- No se empieza a escribir código sin la spec correspondiente ya escrita.
+- Un requisito que nadie puede comprobar no está bien escrito.
+- Las specs se actualizan cuando cambia el producto, no a posteriori para
+  justificar lo que ya se hizo.
 
 ---
 
@@ -388,8 +437,13 @@ Para mantener la constitución cumplible (§1.3):
 - [ ] Sin `console.log`, prints de depuración ni secretos en el código.
 - [ ] Sin código muerto ni funcionalidad comentada. Si no se usa, se elimina.
 - [ ] Comentarios explican **por qué**, no **qué**. El código ya dice qué hace.
-- [ ] Tipado explícito en toda frontera: TypeScript en el front, anotaciones de
-      tipo en Pydantic para toda respuesta de la API.
+- [ ] El frontend se escribe en **JavaScript**, no en TypeScript.
+- [ ] **El tipado fuerte se aplica donde protege de verdad: la frontera del
+      servidor.** Anotaciones de tipo en Pydantic para toda respuesta y petición
+      de la API, y validación en el borde (§6.1).
+- [ ] En el cliente, los datos que llegan de la API se **validan en tiempo de
+      ejecución** antes de usarse. No hay tipado estático, pero tampoco confianza
+      ciega.
 - [ ] Nombres en inglés, `camelCase` para variables, `PascalCase` para tipos.
 - [ ] El código de un juego nuevo vive aislado del resto: no se toca la lógica
       de otros juegos para añadir uno nuevo.
@@ -739,6 +793,7 @@ Esta constitución cambia explícitamente, nunca por inercia.
 3. La versión se incrementa (semver) y se actualiza la tabla de versiones (§10).
 4. Todo el código existente se revisa contra la nueva versión en un plazo
    razonable; las desviaciones se registran como deuda técnica (§11).
+5. Las specs afectadas se actualizan **antes** que el código (§0.3).
 
 ---
 
@@ -753,6 +808,7 @@ Esta constitución cambia explícitamente, nunca por inercia.
 | v0.5    | 2026-10-15 | Nombre **Connect**. Paraulógic (todas las palabras, intentos ilimitados, botón de pista). Wordle una vez por jugador. WCAG 2.2 AA confirmado. Playwright. Chat por polling. Identidad anónima. Los tres dispositivos son objetivo de primera clase. Sección §6.8: riesgo del chat sin moderación. | —     |
 | v0.6    | 2026-10-15 | Paraulógic: 1 punto por palabra, intentos infinitos, no se puede perder, pausa y reanudación (§2.1.7). Autenticación usuario+contraseña sin correo, contraseñas **hasheadas** (§6.2) y riesgos asumidos (§6.3). Chat: bloqueo sí, reporte no. Entorno **local sin despliegue** (§7.0). | —     |
 | v0.7    | 2026-10-15 | Contenido del MVP definido y cargado en `data/seed_v0.sql` (§2.1.8): Wordle `LUNAS`, 1 acertijo, y Paraulógic con letras A E N R S T y 21 palabras. | —     |
+| v0.8    | 2026-10-15 | Método **SDD spec-anchored** (§0.3, nueva): la spec es la fuente de verdad, requisitos numerados, una rama por spec. Frontend en **JavaScript** (§3.2), con el tipado fuerte concentrado en la frontera del servidor. | —     |
 
 ---
 
@@ -794,3 +850,6 @@ Cada placeholder resuelto se anotará aquí con su justificación.
 | 2026-10-15 | Auth: **usuario + contraseña, sin correo**                   | Simple, sin servicios externos       |
 | 2026-10-15 | Contraseñas **hasheadas**, nunca cifradas                   | Requisito técnico innegociable (§6.2) |
 | 2026-10-15 | **Sin despliegue: local**                                   | Fase actual del proyecto (§7.0)      |
+| 2026-10-15 | Frontend en **JavaScript** (no TypeScript)                 | Decisión del equipo (§3.2)            |
+| 2026-10-15 | Método de desarrollo: **SDD spec-anchored**                | La spec es la fuente de verdad (§0.3) |
+| 2026-10-15 | Una rama por spec: `feature/spec-NNN-<slug>`               | Trazabilidad requisito → código (§0.3) |
