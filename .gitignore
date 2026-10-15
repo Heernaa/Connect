@@ -1,0 +1,55 @@
+# --- Sistema operativo y editores ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# --- Entorno y secretos ---
+# Los secretos NUNCA se versionan (§6.1 de Docs/constitution.md).
+# Solo se versiona .env.example, que no contiene valores reales.
+.env
+.env.*
+!.env.example
+
+# --- Python (backend) ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Node (frontend) ---
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+npm-debug.log*
+yarn-error.log*
+.pnpm-store/
+
+# --- Playwright ---
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# --- Bases de datos y datos locales ---
+# Volcados y datos de desarrollo local. El contenido de los juegos sí se
+# versiona: vive en data/seed_v0.sql y es parte del repositorio.
+*.sqlite3
+*.db
+backups/
+pgdata/
+
+# --- Temporales ---
+tmp/
+temp/
+*.log
