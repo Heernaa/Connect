@@ -1,7 +1,7 @@
 # Plan — Spec 004: API de contenido de los juegos
 
-**Estado:** pendiente
-**Progreso:** 0/14 tareas
+**Estado:** implementada
+**Progreso:** 14/14 tareas
 **Rama:** `feature/spec-004-api-contenido`
 **Spec:** [`spec.md`](./spec.md)
 
@@ -9,84 +9,84 @@
 
 ### R-001 — Listado de juegos
 
-- [ ] 4.1 Implementar `GET /api/games` con identificador, nombre y descripción.
+- [x] 4.1 Implementar `GET /api/games` con identificador, nombre y descripción.
       → *R-001*
-- [ ] 4.2 Verificar que el listado **no incluye** la palabra de Wordle ni la
+- [x] 4.2 Verificar que el listado **no incluye** la palabra de Wordle ni la
       respuesta del acertijo.
       → *R-001*
-- [ ] 4.3 Test: la respuesta del listado no contiene ninguna palabra del
+- [x] 4.3 Test: la respuesta del listado no contiene ninguna palabra del
       contenido.
       → *R-001*
 
 ### R-002 — Contenido de Paraulógic
 
-- [ ] 4.4 Implementar `GET /api/games/paraulogic`: letras del conjunto y
+- [x] 4.4 Implementar `GET /api/games/paraulogic`: letras del conjunto y
       número de palabras pendientes.
       → *R-002*
-- [ ] 4.5 Garantizar que **no** se devuelven las soluciones ni las palabras ya
+- [x] 4.5 Garantizar que **no** se devuelven las soluciones ni las palabras ya
       encontradas.
       → *R-002*
-- [ ] 4.6 Test: la respuesta no contiene ninguna de las 21 palabras.
+- [x] 4.6 Test: la respuesta no contiene ninguna de las 21 palabras.
       → *R-002*
 
 ### R-003 — Pistas de Paraulógic
 
-- [ ] 4.7 Implementar `GET /api/games/paraulogic/hint` que devuelve **una**
+- [x] 4.7 Implementar `GET /api/games/paraulogic/hint` que devuelve **una**
       pista de una palabra no encontrada.
       → *R-003*
-- [ ] 4.8 Priorizar palabras con `is_common = false`.
+- [x] 4.8 Priorizar palabras con `is_common = false`.
       → *R-003*
-- [ ] 4.9 Verificar que la pista **no revela** la palabra.
+- [x] 4.9 Verificar que la pista **no revela** la palabra.
       → *R-003*
-- [ ] 4.10 Confirmar que pedir pistas **no** toca la puntuación.
+- [x] 4.10 Confirmar que pedir pistas **no** toca la puntuación.
       → *R-003*
 
 ### R-004 y R-005 — Contenido de Wordle y Acertijo
 
-- [ ] 4.11 Implementar `GET /api/games/wordle`: palabra de 5 letras solo si la
+- [x] 4.11 Implementar `GET /api/games/wordle`: palabra de 5 letras solo si la
       partida está iniciada.
       → *R-004*
-- [ ] 4.12 Si el jugador ya terminó su única partida, devolver el indicador de
+- [x] 4.12 Si el jugador ya terminó su única partida, devolver el indicador de
       finalizado **en lugar de** la palabra.
       → *R-004*
-- [ ] 4.13 Implementar `GET /api/games/acertijo` que devuelve solo el
+- [x] 4.13 Implementar `GET /api/games/acertijo` que devuelve solo el
       enunciado.
       → *R-005*
-- [ ] 4.14 Test: el endpoint de acertijo no contiene `accepted_answer`.
+- [x] 4.14 Test: el endpoint de acertijo no contiene `accepted_answer`.
       → *R-005*
 
 ### R-006 — Validación de respuestas
 
-- [ ] 4.15 Implementar la normalización: minúsculas, sin tildes, sin
+- [x] 4.15 Implementar la normalización: minúsculas, sin tildes, sin
       puntuación y sin espacios sobrantes.
       → *R-006*
-- [ ] 4.16 Implementar la comparación en el servidor y devolver solo
+- [x] 4.16 Implementar la comparación en el servidor y devolver solo
       acertado / no acertado.
       → *R-006*
-- [ ] 4.17 Tests: respuesta con distinta capitalización, con tildes y con
+- [x] 4.17 Tests: respuesta con distinta capitalización, con tildes y con
       espacios de más se aceptan.
       → *R-006*
 
 ### R-007 — Validación de entradas
 
-- [ ] 4.18 Definir los modelos Pydantic de entrada de cada endpoint.
+- [x] 4.18 Definir los modelos Pydantic de entrada de cada endpoint.
       → *R-007*
-- [ ] 4.19 Devolver `422` con mensajes en lenguaje llano, sin trazas técnicas.
+- [x] 4.19 Devolver `422` con mensajes en lenguaje llano, sin trazas técnicas.
       → *R-007*
 
 ## Verificación de la spec
 
-- [ ] V.1 El listado funciona sin sesión.
-- [ ] V.2 El listado no contiene soluciones.
-- [ ] V.3 Paraulógic devuelve letras y pendientes, sin soluciones.
-- [ ] V.4 Las palabras ya encontradas no aparecen.
-- [ ] V.5 Las pistas priorizan las palabras poco comunes.
-- [ ] V.6 La pista no revela la palabra.
-- [ ] V.7 Pedir pistas no descuenta puntos.
-- [ ] V.8 Wordle no devuelve la palabra a quien ya terminó.
-- [ ] V.9 El acertijo no expone `accepted_answer`.
-- [ ] V.10 La respuesta se acepta con tildes y mayúsculas distintas.
-- [ ] V.11 Wordle no devuelve la palabra sin sesión.
+- [x] V.1 El listado funciona sin sesión.
+- [x] V.2 El listado no contiene soluciones.
+- [x] V.3 Paraulógic devuelve letras y pendientes, sin soluciones.
+- [x] V.4 Las palabras ya encontradas no aparecen.
+- [x] V.5 Las pistas priorizan las palabras poco comunes.
+- [x] V.6 La pista no revela la palabra.
+- [x] V.7 Pedir pistas no descuenta puntos.
+- [x] V.8 Wordle no devuelve la palabra a quien ya terminó.
+- [x] V.9 El acertijo no expone `accepted_answer`.
+- [x] V.10 La respuesta se acepta con tildes y mayúsculas distintas.
+- [x] V.11 Wordle no devuelve la palabra sin sesión.
 
 ## Notas
 
@@ -98,4 +98,21 @@
 - Wordle **no** implementa aquí la lógica de intentos ni las pistas de letras
   (verde / amarillo / gris). Eso es presentación y validación, y va en la spec
   005 con la puntuación.
+- **La tabla `games` sí se crea en esta spec**, aunque la spec 002 no la
+  listara: es el catálogo que necesita el requisito R-001 (`GET /api/games` con
+  nombre y descripción). Llega en su propia migración y sus nombres están en el
+  seed, porque también son contenido (§2.1.2).
+- **Los errores HTTP se traducen también.** Una ruta inexistente devolvía
+  `{"detail": "Not Found"}`, una forma distinta de la del resto de errores. Ahora
+  todos los errores salen como `{"message": "..."}`. El manejador registrado es el
+  de Starlette y no el de FastAPI: el 404 de una ruta inexistente lo lanza
+  Starlette, y con el de FastAPI se escaparía sin traducir.
+- **Dos fallos de contenido encontrados por los tests**, ambos en las pistas de
+  Paraulógic:
+  1. El `JOIN` del seed emparejaba cada palabra con la **primera pista** de la
+     lista, así que las 21 palabras compartían el mismo texto de ayuda.
+  2. Tres pistas contenían su propia palabra: «el imperativo de "traer"» ya te
+     dice que la palabra es `TRAE`.
+  Los dos estaban en el seed y pasaban el test de recuento. Ahora hay un test que
+  comprueba que cada palabra tiene **su** pista, con un texto distinto.
 - Al terminar, merge a `main` y actualizar el índice de `Docs/specs/README.md`.

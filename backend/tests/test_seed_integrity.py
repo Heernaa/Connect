@@ -115,6 +115,34 @@ def test_hints_never_reveal_the_word(seeded_db_session) -> None:
         )
 
 
+def test_every_word_has_exactly_its_own_hint(seeded_db_session) -> None:
+    """R-003: cada palabra tiene su propia pista.
+
+    Si a una palabra se le asignara la pista de otra, quien la pidiera recibiría
+    una ayuda que no le sirve: la palabra no encaja con lo que dice la pista.
+    """
+    pairs = seeded_db_session.execute(
+        select(ParaulogicWord.word, ParaulogicHint.hint_text)
+        .join(ParaulogicHint, ParaulogicHint.word_id == ParaulogicWord.id, isouter=True)
+    ).all()
+
+    hint_texts = [hint for _, hint in pairs if hint is not None]
+
+    assert len(pairs) == EXPECTED_WORDS, (
+        "Hay palabras del conjunto sin pista."
+    )
+    assert len(hint_texts) == EXPECTED_HINTS, (
+        "Cada palabra del conjunto debería tener una pista."
+    )
+
+    # Cada palabra con un texto de pista distinto: si dos compartieran el mismo
+    # texto, la una estaría con la pista de la otra.
+    assert len(set(hint_texts)) == EXPECTED_HINTS, (
+        "Hay palabras que comparten el texto de la pista: alguna tiene la pista de "
+        "otra palabra."
+    )
+
+
 def test_seed_file_does_not_create_tables() -> None:
     """El esquema tiene una sola fuente de verdad: la migración de Alembic.
 
@@ -136,6 +164,7 @@ def test_no_extra_tables_beyond_the_declared_ones(seeded_db_session) -> None:
     """
     expected = {
         "users",
+        "games",
         "paraulogic_sets",
         "paraulogic_words",
         "paraulogic_hints",

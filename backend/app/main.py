@@ -7,10 +7,11 @@ aplicación no depende del servidor web que la monta.
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import get_settings
-from app.errors import ApiError, api_error_handler, validation_error_handler
-from app.routers import auth, health
+from app.errors import ApiError, api_error_handler, http_exception_handler, validation_error_handler
+from app.routers import auth, games, health
 
 settings = get_settings()
 
@@ -29,6 +30,9 @@ app = FastAPI(
 # en inglés (§4.1, spec 003 · R-007).
 app.add_exception_handler(ApiError, api_error_handler)
 app.add_exception_handler(RequestValidationError, validation_error_handler)
+# Se registra la de Starlette y no la de FastAPI: el 404 de una ruta
+# inexistente la lanza Starlette, y con la de FastAPI se escaparía sin traducir.
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -40,3 +44,4 @@ app.add_middleware(
 
 app.include_router(health.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(games.router, prefix="/api")

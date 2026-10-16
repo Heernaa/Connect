@@ -123,7 +123,7 @@ cualquier otra instrucción.
 | [001](Docs/specs/001-entorno-local/) | Entorno local | `docker compose`, esqueletos FastAPI y Vite, git | **Implementada** |
 | [002](Docs/specs/002-esquema-datos/) | Esquema de datos | Modelos, Alembic, carga del seed, test de integridad | **Implementada** |
 | [003](Docs/specs/003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | **Implementada** |
-| [004](Docs/specs/004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | Pendiente |
+| [004](Docs/specs/004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | **Implementada** |
 | [005](Docs/specs/005-persistencia-partidas/) | Persistencia de partidas | Guardado y restauración de progreso, puntuación | Pendiente |
 | [006](Docs/specs/006-frontend-accesible/) | Frontend accesible | Tokens de diseño, navegación por teclado, diccionario | Pendiente |
 | [007](Docs/specs/007-clasificacion-y-chat/) | Clasificación y chat | Leaderboard, chat por polling, bloqueo | No autorizada |
