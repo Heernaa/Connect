@@ -40,6 +40,23 @@ En `production`, arrancar con la `SECRET_KEY` de desarrollo **detiene el
 proceso** con un error explícito. Un despliegue inseguro que arranca en
 silencio es peor que uno que se niega a arrancar (§6.1, spec 001 · R-003).
 
+## Migraciones y contenido
+
+El esquema lo crea Alembic. El contenido de los juegos lo carga el seed. Son
+dos cosas separadas a propósito: el esquema tiene una única fuente de verdad y el
+contenido se puede recargar sin tocar la estructura (§2.1.3).
+
+```bash
+alembic upgrade head                                    # Aplica las migraciones
+alembic downgrade base                                  # Las revierte
+alembic revision --autogenerate -m "qué cambia"        # Nueva migración
+
+docker compose exec -T db psql -U connect -d connect < ../data/seed_v0.sql
+```
+
+El seed es **idempotente**: cargarlo dos veces no duplica contenido. Eso lo
+garantiza que `paraulogic_sets.letters` sea única.
+
 ## Pruebas
 
 ```bash

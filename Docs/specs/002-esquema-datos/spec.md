@@ -1,6 +1,6 @@
 # Spec 002 — Esquema de datos
 
-**Estado:** pendiente
+**Estado:** implementada
 **Fase:** 2 de 7
 **Constitución:** §2.1.2 (contenido vía API), §6.3 (datos mínimos)
 
@@ -122,14 +122,14 @@ esperado, y **falla si no lo es**.
 
 ## 4. Criterios de aceptación
 
-- [ ] Una migración limpia recrea el esquema completo sin errores.
-- [ ] `data/seed_v0.sql` se carga sin duplicados al ejecutarlo dos veces.
-- [ ] El test de integridad pasa.
-- [ ] El test de integridad **falla** si se altera el contenido del seed.
-- [ ] No existe ninguna columna con nombre real, email, teléfono o imagen.
-- [ ] `password_hash` contiene un hash argon2, no una contraseña.
-- [ ] Una palabra de Paraulógic con una letra ajena al conjunto es rechazada.
-- [ ] No se pueden crear dos usuarios con el mismo `username` variando las
+- [x] Una migración limpia recrea el esquema completo sin errores.
+- [x] `data/seed_v0.sql` se carga sin duplicados al ejecutarlo dos veces.
+- [x] El test de integridad pasa.
+- [x] El test de integridad **falla** si se altera el contenido del seed.
+- [x] No existe ninguna columna con nombre real, email, teléfono o imagen.
+- [x] `password_hash` contiene un hash argon2, no una contraseña.
+- [x] Una palabra de Paraulógic con una letra ajena al conjunto es rechazada.
+- [x] No se pueden crear dos usuarios con el mismo `username` variando las
       mayúsculas.
 
 ## 5. Dependencias y referencias

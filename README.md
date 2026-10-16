@@ -121,7 +121,7 @@ cualquier otra instrucción.
 | Spec | Nombre | Cubre | Estado |
 | --- | --- | --- | --- |
 | [001](Docs/specs/001-entorno-local/) | Entorno local | `docker compose`, esqueletos FastAPI y Vite, git | **Implementada** |
-| [002](Docs/specs/002-esquema-datos/) | Esquema de datos | Modelos, Alembic, carga del seed, test de integridad | Pendiente |
+| [002](Docs/specs/002-esquema-datos/) | Esquema de datos | Modelos, Alembic, carga del seed, test de integridad | **Implementada** |
 | [003](Docs/specs/003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | Pendiente |
 | [004](Docs/specs/004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | Pendiente |
 | [005](Docs/specs/005-persistencia-partidas/) | Persistencia de partidas | Guardado y restauración de progreso, puntuación | Pendiente |
@@ -175,6 +175,15 @@ Eso levanta los tres servicios:
 
 La primera vez tarda unos minutos porque construye las imágenes. Después,
 `docker compose up` ya arranca en segundos.
+
+### Base de datos: migraciones y contenido
+
+```bash
+docker compose exec backend alembic upgrade head    # Crea o actualiza el esquema
+docker compose exec db psql -U connect -d connect < data/seed_v0.sql   # Carga el contenido
+```
+
+El seed se puede ejecutar las veces que haga falta: no duplica nada.
 
 ### Pruebas
 

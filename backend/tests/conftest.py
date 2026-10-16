@@ -1,25 +1,82 @@
 """Configuración compartida de los tests del backend."""
 
+import os
+from pathlib import Path
+
 import pytest
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db.session import get_engine
 
+#: Rutas donde puede estar el seed dentro del contenedor. En la máquina del
+#: desarrollador se encuentra subiendo por el árbol de directorios, porque ahí el
+#: repositorio está entero.
+CONTAINER_SEED_PATHS = ("/data/seed_v0.sql",)
+
+
+def find_seed_path() -> Path:
+    """Localiza `data/seed_v0.sql`.
+
+    Los tests corren en dos entornos: en la máquina del desarrollador, donde está
+    el repositorio completo, y dentro del contenedor, donde solo se monta
+    `backend/`. Se prueban varios sitios en vez de fijar una ruta que solo
+    funciona en uno de los dos.
+    """
+    candidates = []
+
+    override = os.environ.get("SEED_PATH")
+    if override:
+        candidates.append(Path(override))
+
+    candidates.extend(Path(part) for part in CONTAINER_SEED_PATHS)
+    candidates.extend(
+        parent / "data" / "seed_v0.sql" for parent in Path(__file__).resolve().parents
+    )
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+
+    raise FileNotFoundError(
+        "No se encuentra data/seed_v0.sql. Se buscó en: "
+        + ", ".join(str(candidate) for candidate in candidates)
+    )
+
+
+def read_seed_sql() -> str:
+    """Devuelve el seed sin comentarios ni su propio `BEGIN`/`COMMIT`.
+
+    - Los comentarios se quitan porque, al mirar qué hace el script, no son
+      código.
+    - El `BEGIN;` y el `COMMIT;` se quitan porque aquí manda la transacción del
+      test: un `COMMIT` intermedio dejaría datos que el rollback no deshace.
+    """
+    raw = find_seed_path().read_text(encoding="utf-8")
+
+    lines = []
+    for line in raw.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("--") or stripped.upper() in {"BEGIN;", "COMMIT;"}:
+            continue
+        lines.append(line)
+
+    return "\n".join(lines)
+
 
 @pytest.fixture
 def db_engine():
     """Motor contra la base de datos de desarrollo.
 
-    Los tests de integración necesitan PostgreSQL real, no un doble: el
-    comportamiento que se prueba (restricciones únicas, cascadas, normalización
-    en base de datos) no existe en un motor en memoria.
+    Los tests de integración necesitan PostgreSQL real, no un doble: lo que se
+    prueba (restricciones únicas, `CHECK`, cascadas) no existe en un motor en
+    memoria.
     """
     engine = get_engine()
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
-    except Exception as error:  # noqa: BLE001 - el mensaje es lo que importa
+    except Exception as error:  # noqa: BLE001 - lo que importa es el mensaje
         pytest.skip(f"PostgreSQL no está accesible: {error}")
     return engine
 
@@ -41,3 +98,25 @@ def db_session(db_engine) -> Session:
         session.close()
         transaction.rollback()
         connection.close()
+
+
+@pytest.fixture
+def seeded_db_session(db_session) -> Session:
+    """Igual que `db_session`, pero con el contenido del MVP cargado.
+
+    El seed se ejecuta **dentro** de la transacción del test, así que tampoco
+    deja nada detrás y los tests no dependen de que alguien haya cargado el seed
+    a mano antes de lanzarlos.
+    """
+    seed_sql = read_seed_sql()
+
+    # Se usa la conexión nativa y no `exec_driver_sql` a propósito. Este último
+    # pasa un diccionario de parámetros vacío, y entonces el controlador busca
+    # marcadores `%` en el texto: el comodín de `LIKE 'Tengo ciudades%'` del
+    # seed se interpretaría como un parámetro y la consulta fallaría. Sin
+    # parámetros, el texto se envía tal cual.
+    raw_connection = db_session.connection().connection.dbapi_connection
+    with raw_connection.cursor() as cursor:
+        cursor.execute(seed_sql)
+
+    return db_session
