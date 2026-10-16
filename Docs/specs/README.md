@@ -32,7 +32,7 @@ NNN-nombre/
 | ---- | ------ | ----- | ------ |
 | [001](001-entorno-local/) | Entorno local | `docker compose`, esqueletos FastAPI y Vite, git | Implementada |
 | [002](002-esquema-datos/) | Esquema de datos | Modelos, Alembic, carga del seed, test de integridad | **Implementada** |
-| [003](003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | Pendiente |
+| [003](003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | **Implementada** |
 | [004](004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | Pendiente |
 | [005](005-persistencia-partidas/) | Persistencia de partidas | Guardado y restauración de progreso, puntuación | Pendiente |
 | [006](006-frontend-accesible/) | Frontend accesible | Tokens de diseño, navegación por teclado, diccionario | Pendiente |

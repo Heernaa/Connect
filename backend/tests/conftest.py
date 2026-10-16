@@ -1,13 +1,17 @@
 """Configuración compartida de los tests del backend."""
 
 import os
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db.session import get_engine
+from app.dependencies import get_db
+from app.main import app
 
 #: Rutas donde puede estar el seed dentro del contenedor. En la máquina del
 #: desarrollador se encuentra subiendo por el árbol de directorios, porque ahí el
@@ -82,11 +86,12 @@ def db_engine():
 
 
 @pytest.fixture
-def db_session(db_engine) -> Session:
-    """Sesión transaccional que se deshace al terminar el test.
+def transactional_session(db_engine) -> Iterator[Session]:
+    """Sesión de base de datos que se deshace al terminar el test.
 
     Cada test ve la base de datos real pero nunca deja datos detrás, así que el
-    orden de ejecución no cambia el resultado.
+    orden de ejecución no cambia el resultado y se pueden relanzar los tests sin
+    arrastrar cuentas de pruebas anteriores.
     """
     connection = db_engine.connect()
     transaction = connection.begin()
@@ -98,6 +103,12 @@ def db_session(db_engine) -> Session:
         session.close()
         transaction.rollback()
         connection.close()
+
+
+@pytest.fixture
+def db_session(transactional_session) -> Session:
+    """Alias de `transactional_session`, para los tests que solo necesitan la BD."""
+    return transactional_session
 
 
 @pytest.fixture
@@ -120,3 +131,23 @@ def seeded_db_session(db_session) -> Session:
         cursor.execute(seed_sql)
 
     return db_session
+
+
+@pytest.fixture
+def client(transactional_session) -> Iterator[TestClient]:
+    """Cliente HTTP que usa la sesión transaccional del test.
+
+    La dependencia `get_db` se sustituye por la sesión del test. Sin esto, la
+    aplicación abriría su propia sesión, haría `commit` de verdad y cada ejecución
+    dejaría cuentas y sesiones en la base de datos de desarrollo.
+    """
+    def use_test_session() -> Iterator[Session]:
+        yield transactional_session
+
+    app.dependency_overrides[get_db] = use_test_session
+
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.clear()

@@ -5,6 +5,7 @@ Este `__init__` importa todos los modelos a propósito: Alembic recorre
 no aparece en las migraciones.
 """
 
+from app.models.auth import AuthSession, LoginAttempt
 from app.models.base import Base
 from app.models.content import ParaulogicHint, ParaulogicSet, ParaulogicWord, Riddle, WordleWord
 from app.models.session import (
@@ -17,8 +18,10 @@ from app.models.session import (
 from app.models.user import User, normalize_username
 
 __all__ = [
+    "AuthSession",
     "Base",
     "GameSession",
+    "LoginAttempt",
     "ParaulogicFoundWord",
     "ParaulogicHint",
     "ParaulogicSet",

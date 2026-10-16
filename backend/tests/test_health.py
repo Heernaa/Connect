@@ -3,13 +3,6 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import app
-
-
-@pytest.fixture
-def client() -> TestClient:
-    return TestClient(app)
-
 
 def test_health_returns_ok_and_confirms_database(client: TestClient) -> None:
     """R-004: /api/health devuelve 200 e indica el estado de PostgreSQL."""
