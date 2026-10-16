@@ -12,6 +12,8 @@ dependencies = [
     "sqlalchemy>=2.0,<3.0",
     "psycopg[binary]>=3.2,<4.0",
     "alembic>=1.14,<2.0",
+    # argon2id para hashear contraseñas. Se hashean, nunca se cifran (§6.2).
+    "argon2-cffi>=23.1,<26.0",
 ]
 
 [project.optional-dependencies]
@@ -43,8 +45,12 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
+# B008: en FastAPI, `Depends(...)` en el valor por defecto de un parámetro es la
+# forma de declarar una dependencia. Es el idioma del framework, no un error.
+ignore = ["B008"]
+
 [tool.ruff.lint.per-file-ignores]
 # Las migraciones las genera Alembic, no se escriben a mano. Reformatearlas
 # haría que la siguiente autogenerada volviera a salir distinta, así que se
 # dejan como están.
-"alembic/versions/*" = ["E501"]
+"alembic/versions/*" = ["E501", "I001"]

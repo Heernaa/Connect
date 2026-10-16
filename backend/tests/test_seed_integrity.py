@@ -146,6 +146,8 @@ def test_no_extra_tables_beyond_the_declared_ones(seeded_db_session) -> None:
         "wordle_attempts",
         "riddle_answers",
         "scores",
+        "auth_sessions",
+        "login_attempts",
     }
     rows = seeded_db_session.execute(
         text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")

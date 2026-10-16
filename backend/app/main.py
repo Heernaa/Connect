@@ -5,10 +5,12 @@ aplicación no depende del servidor web que la monta.
 """
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import health
+from app.errors import ApiError, api_error_handler, validation_error_handler
+from app.routers import auth, health
 
 settings = get_settings()
 
@@ -22,6 +24,12 @@ app = FastAPI(
     redoc_url=None,
 )
 
+# Los errores se devuelven siempre con la misma forma, con el mensaje en claro
+# para quien lo lee. Sin esto, FastAPI respondería con su propio formato técnico
+# en inglés (§4.1, spec 003 · R-007).
+app.add_exception_handler(ApiError, api_error_handler)
+app.add_exception_handler(RequestValidationError, validation_error_handler)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -31,3 +39,4 @@ app.add_middleware(
 )
 
 app.include_router(health.router, prefix="/api")
+app.include_router(auth.router, prefix="/api")

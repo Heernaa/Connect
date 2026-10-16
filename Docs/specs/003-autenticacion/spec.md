@@ -1,6 +1,6 @@
 # Spec 003 — Autenticación
 
-**Estado:** pendiente
+**Estado:** implementada
 **Fase:** 3 de 7
 **Constitución:** §2.2 (cuentas), §6.2 (hash), §6.3 (riesgo sin correo)
 
@@ -131,19 +131,19 @@ Existe un test que comprueba, sobre la base de datos real, que:
 
 ## 4. Criterios de aceptación
 
-- [ ] Se puede registrar un usuario y iniciar sesión.
-- [ ] El `password_hash` en la base de datos es un hash argon2id, no la
+- [x] Se puede registrar un usuario y iniciar sesión.
+- [x] El `password_hash` en la base de datos es un hash argon2id, no la
       contraseña.
-- [ ] Dos usuarios con la misma contraseña tienen hashes distintos.
-- [ ] `grep` sobre la base de datos no encuentra ninguna contraseña en claro.
-- [ ] Ninguna respuesta de la API contiene el hash ni la contraseña.
-- [ ] El fallo de login da el mismo mensaje si el usuario no existe o si la
+- [x] Dos usuarios con la misma contraseña tienen hashes distintos.
+- [x] `grep` sobre la base de datos no encuentra ninguna contraseña en claro.
+- [x] Ninguna respuesta de la API contiene el hash ni la contraseña.
+- [x] El fallo de login da el mismo mensaje si el usuario no existe o si la
       contraseña falla.
-- [ ] La cookie de sesión es `httpOnly` y `SameSite=Lax`.
-- [ ] Cerrar sesión invalida la sesión en el servidor.
-- [ ] El bloqueo por intentos funciona y el mensaje es claro.
-- [ ] El alias no se puede derivar del `username`.
-- [ ] El registro funciona sin correo electrónico y no pide ninguno.
+- [x] La cookie de sesión es `httpOnly` y `SameSite=Lax`.
+- [x] Cerrar sesión invalida la sesión en el servidor.
+- [x] El bloqueo por intentos funciona y el mensaje es claro.
+- [x] El alias no se puede derivar del `username`.
+- [x] El registro funciona sin correo electrónico y no pide ninguno.
 
 ## 5. Dependencias y referencias
 

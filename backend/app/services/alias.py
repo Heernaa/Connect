@@ -12,10 +12,10 @@ import secrets
 
 from app.content.alias_words import ADJECTIVES, ANIMALS
 
-#: Se reintenta esta cantidad de veces antes de añadir un número. El número es
-#: la última salida, no la primera: `LoboTranquilo` se lee mucho mejor que
-#: `LoboTranquilo47`.
-MAX_ATTEMPTS = 10
+#: Se reintenta esta cantidad de veces antes de rendirse. El objetivo es
+#: encontrar un alias libre, no garantizarlo: hay 20 × 19 combinaciones, y para
+#: el número de cuentas de un entorno local eso da margen de sobra.
+MAX_ALIAS_ATTEMPTS = 10
 
 
 def generate_alias() -> str:

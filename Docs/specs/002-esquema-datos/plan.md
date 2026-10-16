@@ -81,9 +81,9 @@
 - [x] V.3 El test de integridad pasa.
 - [x] V.4 El test de integridad falla si se altera el contenido.
 - [x] V.5 No hay columnas con datos personales.
-- [ ] V.6 `password_hash` contiene un hash argon2. **Pendiente de la spec
-      003**: comprobarlo exige el módulo de hashing, que es donde vive el
-      requisito. La columna existe y es `NOT NULL` desde esta spec.
+- [x] V.6 `password_hash` contiene un hash argon2. **Verificado en la spec 003**
+      (`test_stored_value_is_an_argon2id_hash`) y comprobado además sobre la base
+      de datos en marcha: `$argon2id$v=19$m=65536,t=3...`.
 - [x] V.7 Una palabra con letra ajena se rechaza.
 - [x] V.8 Dos `username` que solo difieren en mayúsculas chocan.
 

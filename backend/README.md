@@ -77,7 +77,11 @@ omiten con un mensaje explícito en lugar de fallar de forma confusa.
 
 ## Reglas que no se saltan aquí
 
-- **Contraseñas hasheadas, nunca cifradas** (§6.2). argon2id.
+- **Contraseñas hasheadas, nunca cifradas** (§6.2). argon2id, con salt único por
+  contraseña.
+- **La sesión se invalida en el servidor.** La cookie lleva el token firmado con
+  `SECRET_KEY`; en la base de datos se guarda su hash. Cerrar sesión revoca la
+  fila, no solo borra la cookie.
 - **Consultas parametrizadas**, nunca SQL construido con strings (§6.1).
 - **La puntuación se calcula aquí**, nunca se recibe del cliente (§6.6).
 - **Errores en lenguaje llano** para quien los lee, sin códigos técnicos (§4.1).
