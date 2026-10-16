@@ -124,7 +124,7 @@ cualquier otra instrucción.
 | [002](Docs/specs/002-esquema-datos/) | Esquema de datos | Modelos, Alembic, carga del seed, test de integridad | **Implementada** |
 | [003](Docs/specs/003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | **Implementada** |
 | [004](Docs/specs/004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | **Implementada** |
-| [005](Docs/specs/005-persistencia-partidas/) | Persistencia de partidas | Guardado y restauración de progreso, puntuación | Pendiente |
+| [005](Docs/specs/005-persistencia-partidas/) | Persistencia de partidas | Guardado y restauración de progreso, puntuación | **Implementada** |
 | [006](Docs/specs/006-frontend-accesible/) | Frontend accesible | Tokens de diseño, navegación por teclado, diccionario | Pendiente |
 | [007](Docs/specs/007-clasificacion-y-chat/) | Clasificación y chat | Leaderboard, chat por polling, bloqueo | No autorizada |
 | [008](Docs/specs/008-e2e-y-accesibilidad/) | E2E y accesibilidad | Playwright en tres dispositivos, auditoría WCAG | No autorizada |
@@ -153,8 +153,10 @@ justificarlo (`spec 001 · R-007`).
 
 ## 🚀 Puesta en marcha
 
-> **Estado actual: spec 001 implementada.** El proyecto arranca con un solo
-> comando. Las specs 002 a 005 están en curso.
+> **Estado actual: specs 001 a 005 implementadas.** El proyecto arranca con un
+> solo comando y tiene la API completa de los tres juegos: cuentas, sesiones,
+> contenido y puntuación validada en el servidor. Falta la interfaz de juego, que
+> es la spec 006.
 
 **Requisitos:** Docker y Docker Compose. **Ninguna credencial externa es
 necesaria** (§7.0). El proyecto vive en local y no se despliega.
