@@ -55,6 +55,11 @@ services:
     volumes:
       - ./frontend:/app
       - frontend_modules:/app/node_modules
+      # El mismo montaje de solo lectura que tiene el backend: los recorridos E2E
+      # (spec 008) leen `data/seed_v0.sql` para saber qué palabras y respuestas
+      # hay, que es lo único que el servidor no devuelve (§2.1.2). Está fuera del
+      # contexto de build y fuera de `src/`, así que no llega al bundle.
+      - ./data:/data:ro
     depends_on:
       - backend
 

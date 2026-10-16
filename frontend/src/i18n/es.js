@@ -204,6 +204,9 @@ export const es = {
     pointsSingular: '1 punto',
     filterLegend: 'Elige qué clasificación quieres ver',
     filterAll: 'Todos los juegos',
+    // Nombre accesible de la caja que se desplaza en móvil. Sin él, quien llega
+    // con el teclado a esa zona no sabe qué es ni que se puede mover.
+    scrollRegion: 'Tabla de la clasificación',
     // La palabra «juego» se repite junto al nombre para que el encabezado se
     // entienda solo, sin tener que mirar la columna de al lado.
     gameHeading: 'Juego',
@@ -382,7 +385,9 @@ export const es = {
     answerPlaceholder: 'Escribe aquí lo que pienses',
     submit: 'Comprobar la respuesta',
     checking: 'Comprobando…',
-    correct: '¡Correcto! Has acertado y sumas {points} puntos.',
+    // El texto ya viene formateado (`formatPoints`), así que aquí **no** hay que
+    // escribir «puntos» detrás: se pondría dos veces («sumas 10 puntos puntos»).
+    correct: '¡Correcto! Has acertado y sumas {points}.',
     incorrect: 'No es esa. Vuelve a pensarlo: fallar no te resta nada.',
     solvedHeading: 'Ya lo has acertado',
     solvedText: 'La respuesta era {answer}.',

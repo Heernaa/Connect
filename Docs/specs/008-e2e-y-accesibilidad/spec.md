@@ -1,7 +1,6 @@
 # Spec 008 — E2E y verificación de accesibilidad
 
-**Estado:** planificada — desbloqueada (las pantallas de los juegos están en la
-spec 006)
+**Estado:** implementada y verificada — pendiente la firma del checklist manual (R-008)
 **Fase:** 7 de 7
 **Constitución:** §5 (pruebas), §4.3 (verificación), §7.1 (dispositivos)
 
@@ -94,16 +93,24 @@ y móvil — porque ninguno de los tres es secundario (§7.1).
 
 ## 4. Criterios de aceptación
 
-- [ ] El E2E completo pasa de principio a fin.
-- [ ] Los tres juegos tienen E2E propio.
-- [ ] La puntuación mostrada coincide con la del servidor.
-- [ ] El progreso sobrevive a cerrar el navegador.
-- [ ] Wordle no se puede jugar dos veces.
-- [ ] axe-core no reporta violaciones A ni AA en ninguna pantalla.
-- [ ] Los E2E pasan en ordenador, tablet y móvil.
-- [ ] Sin scroll horizontal a 360px.
-- [ ] Un flujo completo se puede hacer solo con teclado.
+- [x] El E2E completo pasa de principio a fin.
+- [x] Los tres juegos tienen E2E propio.
+- [x] La puntuación mostrada coincide con la del servidor.
+- [x] El progreso sobrevive a cerrar el navegador.
+- [x] Wordle no se puede jugar dos veces.
+- [x] axe-core no reporta violaciones A ni AA en ninguna pantalla.
+- [x] Los E2E pasan en ordenador, tablet y móvil.
+- [x] Sin scroll horizontal a 360px.
+- [x] Un flujo completo se puede hacer solo con teclado.
 - [ ] El checklist manual está firmado y fechado.
+      → El checklist está escrito
+      ([`Docs/checklist-accesibilidad.md`](../../checklist-accesibilidad.md)) pero
+      **sin firmar**: ese juicio es de una persona, no del código (§4.3).
+
+> `scripts/test-all.sh` pasó el 2026-10-16: 299 tests backend, 294 unitarias
+> frontend, 291 E2E y build de producción. oxlint terminó sin errores y mostró
+> 7 avisos. Se cambió la imagen del frontend a Debian slim porque Chromium de
+> Playwright no podía arrancar en Alpine.
 
 ## 5. Dependencias y referencias
 

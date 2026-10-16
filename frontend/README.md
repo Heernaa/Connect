@@ -11,7 +11,13 @@ src/
   lib/api.js         Cliente de la API, con validación en tiempo de ejecución
   components/        Componentes reutilizables
   index.css          Tokens de diseño y estilos base
-  App.jsx            Página inicial
+  pages/             Una pantalla por ruta, en `routes.js`
+  App.jsx            Enrutado y sesión
+
+e2e/
+  *.spec.js          Auditoría y reglas, con la API simulada
+  journeys/          Recorridos contra la aplicación real (spec 008)
+  helpers.js         Respuestas simuladas y utilidades compartidas
 ```
 
 ## Arranque
@@ -22,6 +28,28 @@ npm run dev          # http://localhost:5173
 npm run build        # bundle de producción en dist/
 npm run lint         # oxlint
 ```
+
+## Pruebas
+
+```bash
+npm test             # Vitest: componentes, validadores, diccionario, tokens
+npm run test:e2e     # Playwright: E2E, teclado, reflow y axe-core
+npm run test:all     # todo lo anterior, en orden
+```
+
+`npm run test:e2e` corre **toda** la suite de Playwright en los tres perfiles de
+dispositivo del proyecto: `desktop`, `tablet` y `mobile`.
+
+Son dos tipos de test y la diferencia importa:
+
+- `e2e/*.spec.js` **intercepta la API** con respuestas simuladas. Auditan la
+  interfaz sin depender de PostgreSQL, y por eso funcionan con el backend caído.
+- `e2e/journeys/*.spec.js` **no intercepta nada**: son los recorridos de la spec
+  008 contra la aplicación real, con la puntuación que calcula el servidor y el
+  progreso que guarda en PostgreSQL. Necesitan `docker compose up` en marcha; si
+  el backend no contesta, fallan diciéndolo en lugar de con un error de red.
+
+Para un solo proyecto: `npx playwright test --project=mobile`.
 
 Dentro de Docker, `docker compose up` ya lo levanta en
 <http://localhost:5173>.

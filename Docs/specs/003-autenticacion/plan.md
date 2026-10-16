@@ -1,7 +1,7 @@
 # Plan — Spec 003: Autenticación
 
 **Estado:** implementada
-**Progreso:** 15/15 tareas
+**Progreso:** 16/16 tareas
 **Rama:** `feature/spec-003-autenticacion`
 **Spec:** [`spec.md`](./spec.md)
 
@@ -38,6 +38,10 @@
       → *R-004*
 - [x] 3.9 Mensajes de error en lenguaje llano, sin códigos técnicos.
       → *R-003*
+- [x] 3.21 El registro abre sesión: `register` manda la cookie con el mismo
+      código que `login`, y hay un test que comprueba que después de registrarse
+      `GET /api/auth/me` responde 200.
+      → *R-003*, *R-005*
 
 ### R-005 y R-006 — Sesiones
 
@@ -95,8 +99,17 @@
 - [x] V.9 El bloqueo por intentos funciona.
 - [x] V.10 El alias no se deriva del `username`.
 - [x] V.11 El registro no pide correo.
+- [x] V.12 Tras registrarse se puede usar la API sin volver a entrar.
 
 ## Notas
+
+- **El registro abre sesión (R-003).** Se añadió el 2026-10-16, al implementar la
+  spec 008. Recorriendo la aplicación de verdad se vio que la pantalla de éxito
+  del alta decía «estás dentro como …» y llevaba a los juegos, pero el servidor no
+  había creado ninguna sesión: todo lo que exigía cuenta devolvía 401 con un
+  «Volver a intentarlo» que no funcionaba (§2.1.6). Primero se corrigió la spec
+  (R-003 y R-005) y después el código, como manda la regla 4 de
+  [`Docs/specs/README.md`](../README.md).
 
 - El bloqueo por intentos (R-008) está en **PostgreSQL**, en la tabla
   `login_attempts`. No se ha añadido Redis ni ningún otro servicio: el proyecto

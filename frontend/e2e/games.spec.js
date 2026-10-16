@@ -236,6 +236,12 @@ test('las tres pistas de Wordle se distinguen sin color', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
   const celdas = page.locator('.ui-wordle-cell[data-state]')
+
+  // Se espera **a las casillas**, no al encabezado: la pantalla pinta el título
+  // antes de tener los intentos, y leer los `data-state` en ese momento daría una
+  // lista vacía que el test daría por buena.
+  await expect(celdas).toHaveCount(5)
+
   const estados = await celdas.evaluateAll((nodes) => nodes.map((node) => node.dataset.state))
 
   expect(estados).toContain('correct')

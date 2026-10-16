@@ -217,7 +217,15 @@ export function ParaulogicPage({ signedIn }) {
           el progreso.
         */}
         {found.length > 0 && (
-          <ul className="mt-4 flex flex-wrap gap-3" aria-label={es.paraulogic.foundHeading}>
+          /*
+            Se nombra con `aria-labelledby`, no con un `aria-label` propio: el
+            encabezado de arriba ya dice «Palabras encontradas (3)», y un
+            `aria-label` con la plantilla sin rellenar habría hecho que el
+            lector de pantalla anunciara literalmente «Palabras encontradas
+            ({count})». El nombre accesible sale del texto visible, que es lo que
+            se ve y lo que se oye (§4.2).
+          */
+          <ul aria-labelledby="progress-heading" className="mt-4 flex flex-wrap gap-3">
             {found.map((word) => (
               <li key={word} className="ui-found-word">
                 {word}

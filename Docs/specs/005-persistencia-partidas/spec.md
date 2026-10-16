@@ -83,14 +83,18 @@ Al volver a entrar, el jugador recupera:
 
 ### R-007 — Fórmula de Wordle
 
-- Base de **100 puntos** (`[WORDLE_POINTS]`, propuesta a confirmar).
-- Penalización del **10% por cada intento usado**: 6 intentos, 0 puntos.
+- Base de **100 puntos**, con una penalización del 10 % de la base por cada
+  intento usado después del primero. Decisión registrada en la constitución
+  (§0.1 y §2.1.5).
+- Penalización del **10% de la base por cada intento usado después del primero**:
+  100 puntos al acertar en el primer intento y 50 al acertar en el sexto.
 - Acertar en el primer intento da la puntuación máxima.
 - Fórmula en un solo sitio del código, parametrizada.
 
 ### R-008 — Fórmula del Acertijo
 
-- Puntos fijos por acertar (`[ACERTIJO_POINTS]`, propuesta a confirmar).
+- **10 puntos fijos** por acertar, independientemente del número de intentos
+  previos. Decisión registrada en la constitución (§0.1 y §2.1.5).
 - **No penaliza** los intentos previos: el objetivo es pensar, no acertar a la
   primera (§2.1.4).
 - Responder bien después de varios intentos vale lo mismo que a la primera.

@@ -212,7 +212,20 @@ export function ChatPage({ signedIn }) {
     )
   }
 
-  const visible = uniqueMessages(messages)
+  /*
+    Los mensajes de quien se ha bloqueado **no se pintan**, y no por un filtro del
+    servidor: el servidor solo deja de enviarlos *a partir de ahora*, porque el
+    polling va con `since` y los antiguos ya no vuelve a pedirlos. Sin este
+    filtro, quien bloquea seguiría leyendo los mensajes de esa persona en
+    pantalla, y el aviso «no te llegará ningún mensaje más» sería falso para lo
+    que ya está a la vista (R-006).
+
+    Al desbloquear vuelven a aparecer: el bloqueo es una decisión reversible y
+    quien la revierte quiere volver a ver la conversación.
+  */
+  const visible = uniqueMessages(messages).filter(
+    (message) => !blockedIds.includes(message.authorId),
+  )
 
   return (
     <div className="flex flex-col gap-6">

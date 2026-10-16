@@ -372,7 +372,8 @@ débil no señala nada, hacen falta dos. Sin eso, el detector dispararía con
 cd frontend
 npm run lint        # oxlint
 npm test            # Vitest: contraste, tokens, diccionario, validadores, componentes
-npm run test:a11y   # Playwright: axe, teclado, 44px, reflow, foco de main, R-004, R-008
+npm run test:e2e    # Playwright: axe, teclado, 44px, reflow, foco de main, R-004, R-008
+                    # + recorridos con el backend real (e2e/journeys/, spec 008)
 npm run build       # compilación de producción
 npm run test:all    # todo lo anterior, en orden
 ```
@@ -386,4 +387,6 @@ botón está donde alguien lo esperaría, ni si el orden visual coincide con el 
 teclado**, ni si un texto en lenguaje llano es de verdad llano.
 
 La revisión manual del checklist de §4.1 y §4.2 sigue siendo **obligatoria**
-(§4.3). La auditoría automática no la sustituye: es el suelo, no el techo.
+(§4.3), y se recorre con
+[`checklist-accesibilidad.md`](./checklist-accesibilidad.md). La auditoría
+automática no la sustituye: es el suelo, no el techo.

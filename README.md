@@ -69,8 +69,10 @@ Además:
 - Navegación completa **por teclado**, con foco siempre visible.
 - Sin destellos, sin parpadeos, sin tiempo forzado.
 - Sin scroll horizontal ni pérdida de contenido con el navegador al 200 %.
-- La accesibilidad **se prueba**, no se supone: checklist por pantalla y
-  auditoría automática con axe-core sobre cada pantalla nueva.
+- La accesibilidad **se prueba**, no se supone: auditoría automática con axe-core
+  sobre cada pantalla en ordenador, tablet y móvil, y revisión manual con
+  [`checklist-accesibilidad.md`](Docs/checklist-accesibilidad.md), firmado y
+  fechado (§4.3).
 
 Ordenadores, tablets y móviles son **objetivo de primera clase**: ninguno es
 secundario. Cada pantalla se diseña y se prueba en los tres.
@@ -164,9 +166,10 @@ justificarlo (`spec 001 · R-007`).
 > (clasificación, chat, bloqueo) y el sistema de diseño accesible del que todo lo
 > demás hereda.
 >
-> Queda la **spec 008**: los recorridos E2E completos y la auditoría en los tres
-> dispositivos. Ya no está bloqueada —las pantallas de los juegos existen— pero
-> es el siguiente paso.
+> La **spec 008** —recorridos E2E contra el backend real y auditoría en los tres
+> dispositivos— está implementada salvo el checklist manual de accesibilidad, que
+> tiene que firmarlo una persona ([`Docs/checklist-accesibilidad.md`](Docs/checklist-accesibilidad.md),
+> §4.3).
 
 **Requisitos:** Docker y Docker Compose. **Ninguna credencial externa es
 necesaria** (§7.0). El proyecto vive en local y no se despliega.
@@ -199,12 +202,33 @@ El seed se puede ejecutar las veces que haga falta: no duplica nada.
 
 ### Pruebas
 
+**Toda la suite con un comando**, con el stack levantado (spec 008 · R-009):
+
 ```bash
-docker compose exec backend pytest          # Pruebas del backend
-docker compose exec backend ruff check .   # Linter del backend
-docker compose exec frontend npm run lint  # Linter del frontend
-docker compose exec frontend npm run build # Compila el frontend
+./scripts/test-all.sh
 ```
+
+Ejecuta, en orden: `ruff` y `pytest` del backend (unitarias e integración contra
+el PostgreSQL del stack), `oxlint` y `vitest` del frontend, `playwright` —E2E y
+accesibilidad en **ordenador, tablet y móvil**— y la compilación de producción.
+Todo dentro de los contenedores, para depender solo de Docker (§7.0).
+
+Una violación de accesibilidad con `axe-core` rompe la suite igual que un fallo
+funcional. Los recorridos de `frontend/e2e/journeys/` usan la aplicación real: si
+el backend no está en marcha, fallan diciéndolo.
+
+Por partes:
+
+```bash
+docker compose exec backend pytest              # Pruebas del backend
+docker compose exec backend ruff check .       # Linter del backend
+docker compose exec frontend npm test          # Unitarias del frontend (Vitest)
+docker compose exec frontend npm run test:e2e  # E2E y accesibilidad, 3 dispositivos
+docker compose exec frontend npm run build     # Compila el frontend
+```
+
+La revisión manual de accesibilidad es obligatoria y aparte: está en
+[`Docs/checklist-accesibilidad.md`](Docs/checklist-accesibilidad.md) (§4.3).
 
 ### Configuración
 

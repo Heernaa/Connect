@@ -69,7 +69,17 @@ export function WordlePage({ signedIn }) {
    * palabra secreta, que es justo lo que el servidor no enseña (§2.1.2).
    */
   const load = useCallback(async () => {
-    const [content, session] = await Promise.all([fetchWordleContent(), fetchWordleSession()])
+    // **En este orden y no en paralelo.** La palabra objetivo solo se sirve si hay
+    // una partida en marcha (R-004 de la spec 004), y la partida la crea la
+    // consulta de sesión. Pidiendo las dos a la vez, la del contenido puede llegar
+    // primero, no encontrar partida todavía y responder «ya has terminado»: la
+    // pantalla abría con «Esta vez no la has acertado» y sin formulario, en la
+    // primera partida de una cuenta recién creada.
+    //
+    // Son dos idas y vuelta a un servidor local; la corrección vale más que el
+    // milisegundo que se ahorra.
+    const session = await fetchWordleSession()
+    const content = await fetchWordleContent()
 
     setAttempts(session.attempts)
     setAttemptsUsed(session.attemptsUsed)

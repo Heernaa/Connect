@@ -8,6 +8,7 @@ test atado a la estructura.
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from app.models.enums import GameId
@@ -35,6 +36,25 @@ def _make_user(db: Session, username: str, alias: str) -> User:
 def _score(db: Session, user: User, game_id: GameId, points: int) -> None:
     db.add(Score(user_id=user.id, game_id=game_id, points=points))
     db.commit()
+
+
+@pytest.fixture(autouse=True)
+def empty_leaderboard(db_session: Session) -> None:
+    """Deja la clasificación vacía al empezar cada test.
+
+    Estos tests miden **cuántas filas devuelve** la API y en qué orden: `total == 0`
+    con una clasificación recién creada, `total == 3` con tres jugadores de
+    prueba. En una base de datos de desarrollo eso es cierto solo mientras nadie ha
+    jugado, así que en cuanto alguien jugaba una partida los tests empezaban a
+    fallar por datos que no eran suyos.
+
+    El borrado va **dentro de la transacción del test**, que se deshace al
+    terminar: la base de desarrollo queda exactamente como estaba. Y va por
+    cascada (puntuaciones, partidas, sesiones y bloqueos), que es la misma vía que
+    usa `DELETE /api/auth/me`.
+    """
+    db_session.execute(delete(User))
+    db_session.commit()
 
 
 @pytest.fixture

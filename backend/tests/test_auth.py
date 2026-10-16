@@ -144,6 +144,37 @@ def test_validation_errors_are_in_plain_spanish(client: TestClient) -> None:
     assert "detail" not in body
 
 
+def test_registration_opens_a_session_cookie(client: TestClient) -> None:
+    """R-003 y V.12: registrarse deja a la persona dentro, en el mismo paso."""
+    response = register(client)
+
+    assert response.status_code == 201
+
+    set_cookie = response.headers["set-cookie"].lower()
+    assert "connect_session=" in set_cookie
+    assert "httponly" in set_cookie
+    assert "samesite=lax" in set_cookie
+
+
+def test_registered_user_can_use_the_api_without_logging_in_again(
+    client: TestClient,
+) -> None:
+    """R-003 y V.12: después de registrarse no hace falta volver a entrar.
+
+    Este es el fallo que encontró la spec 008 recorriendo la aplicación: la
+    pantalla de éxito decía «estás dentro como …» y llevaba a los juegos, pero
+    el servidor no tenía ninguna sesión, así que cualquier pantalla con sesión
+    devolvía «No has iniciado sesión» con un «Volver a intentarlo» que nunca
+    funcionaba. Un callejón sin salida en el flujo principal (§2.1.6).
+    """
+    assert register(client).status_code == 201
+
+    me = client.get("/api/auth/me")
+
+    assert me.status_code == 200
+    assert me.json()["username"] == "carmen"
+
+
 # --- Inicio de sesión (R-005, R-007, R-008) ----------------------------------
 
 

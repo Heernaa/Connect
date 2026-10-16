@@ -167,7 +167,18 @@ function LeaderboardTable({ rows, gameName }) {
   // 360px produciría scroll horizontal en el documento, que es exactamente lo
   // que R-010 prohíbe.
   return (
-    <div className="ui-table-scroll">
+    /*
+     * `tabIndex` y `role="region"` no son adorno. En móvil (360px) esta caja es
+     * la que se desplaza en horizontal para que la tabla no arrastre la página
+     * (R-010), y una caja con contenido desplazable a la que **no se puede llegar
+     * con el teclado** es contenido que solo alcanza quien usa ratón o pantalla
+     * táctil: WCAG 2.1.1, y axe lo marca como `scrollable-region-focusable`.
+     *
+     * Con nombre accesible (`aria-label`) el lector de pantalla anuncia de qué
+     * región se trata al entrar en ella, que es lo que hace falta para saber que
+     * se puede desplazar.
+     */
+    <div aria-label={es.leaderboard.scrollRegion} className="ui-table-scroll" role="region" tabIndex={0}>
       <table className="ui-table">
         <caption>{caption}</caption>
 

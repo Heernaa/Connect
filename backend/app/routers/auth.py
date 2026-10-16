@@ -87,16 +87,41 @@ def _clear_failures(db: Session, username_normalized: str) -> None:
     db.commit()
 
 
+def _open_session(db: Session, user: User, response: Response) -> None:
+    """Crea la sesión de `user` y manda la cookie (R-005).
+
+    Lo comparten el registro y el inicio de sesión: abrir sesión es exactamente
+    lo mismo en los dos casos, y repetir el código en dos sitios sería la forma
+    de que un día cambie uno y el otro se quede como estaba.
+    """
+    token = generate_token()
+    db.add(
+        AuthSession(user_id=user.id, token_hash=hash_token(token), expires_at=expires_at())
+    )
+    db.commit()
+
+    set_session_cookie(response, token)
+
+
 @router.post(
     "/register",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Crea una cuenta nueva",
 )
-def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> UserResponse:
-    """Crea una cuenta y devuelve el alias anónimo.
+def register(
+    payload: RegisterRequest, response: Response, db: Session = Depends(get_db)
+) -> UserResponse:
+    """Crea una cuenta, la deja dentro y devuelve el alias anónimo.
 
     No pide correo: es una decisión de producto con su riesgo asumido (§6.3).
+
+    **Abrir sesión aquí es un requisito, no una comodidad (R-003).** La
+    interfaz, al crear la cuenta, enseña «estás dentro como …» y lleva a los
+    juegos; si el servidor no mandara la cookie, esa pantalla mentiría y todo lo
+    que exige sesión acabaría en «No has iniciado sesión» con un «Volver a
+    intentarlo» que nunca funciona, que es un callejón sin salida (§2.1.6) en el
+    flujo principal.
     """
     if payload.password != payload.password_confirmation:
         raise ApiError(PASSWORD_MISMATCH, UNPROCESSABLE_CONTENT)
@@ -112,6 +137,8 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> UserRes
     # El alias es único, así que se puede repetir la generación si el primero ya
     # está ocupado (R-009).
     user = _create_user_with_unique_alias(db, payload, username_normalized)
+
+    _open_session(db, user, response)
 
     return UserResponse(username=user.username, alias=user.alias)
 
@@ -182,13 +209,7 @@ def login(
 
     _clear_failures(db, username_normalized)
 
-    token = generate_token()
-    db.add(
-        AuthSession(user_id=user.id, token_hash=hash_token(token), expires_at=expires_at())
-    )
-    db.commit()
-
-    set_session_cookie(response, token)
+    _open_session(db, user, response)
 
     return UserResponse(username=user.username, alias=user.alias)
 

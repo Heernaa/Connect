@@ -70,12 +70,23 @@ contraseña.
   contraseña.
 - El `username` es único, comparado **sin distinguir mayúsculas**.
 - El `password_hash` nunca es el `password`.
+- **El registro abre la sesión en el mismo paso**: devuelve la cookie de sesión
+  igual que el inicio de sesión (R-005), de modo que quien acaba de crear la
+  cuenta puede seguir sin escribir la contraseña otra vez.
 - No se pide ni se almacena correo electrónico.
 - Mensajes de error en **lenguaje llano**, sin códigos técnicos (§4.1).
 
+> **Por qué el registro abre sesión:** la interfaz, después de crear la cuenta,
+> enseña «estás dentro como …» y lleva a los juegos. Si el servidor no mandara la
+> cookie, esa pantalla sería mentira: cada pantalla con sesión devolvería
+> «No has iniciado sesión» con un «Volver a intentarlo» que nunca funciona, que es
+> un callejón sin salida (§2.1.6) en el flujo principal del producto. Decidido el
+> 2026-10-16 al detectarse la discrepancia entre código y spec durante la 008.
+
 ### R-004 — Longitud y robustez de la contraseña
 
-- Longitud mínima de 8 caracteres (`[MIN_PASSWORD_LEN]`).
+- Longitud mínima de **8 caracteres**, según la decisión de la constitución
+  (§0.1 y §6.2).
 - **No** se exigen símbolos, mayúsculas ni números como reglas obligatorias: esas
   reglas empujan a patrones predecibles y no aportan tanto como la longitud.
 - No se rechazan contraseñas por ser "fáciles" de adivinar; eso es una decisión
@@ -85,7 +96,8 @@ contraseña.
 
 ### R-005 — Sesión con cookie httpOnly
 
-- El inicio de sesión devuelve una **cookie** de sesión `httpOnly`.
+- El inicio de sesión devuelve una **cookie** de sesión `httpOnly`. El registro
+  la devuelve también (R-003).
 - La cookie es `Secure` en producción y `SameSite=Lax`.
 - El identificador de sesión se firma con `SECRET_KEY` y **expira**.
 - La sesión se valida **en el servidor** en cada petición protegida.
@@ -144,6 +156,8 @@ Existe un test que comprueba, sobre la base de datos real, que:
 - [x] El bloqueo por intentos funciona y el mensaje es claro.
 - [x] El alias no se puede derivar del `username`.
 - [x] El registro funciona sin correo electrónico y no pide ninguno.
+- [x] Tras registrarse la persona ya está dentro: el registro manda la cookie de
+      sesión y se puede usar la API sin volver a entrar.
 
 ## 5. Dependencias y referencias
 

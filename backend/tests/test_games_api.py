@@ -13,7 +13,6 @@ y `test_hint_does_not_reveal_the_word`.
 """
 
 import re
-import unicodedata
 
 import pytest
 from fastapi.testclient import TestClient
@@ -35,16 +34,19 @@ from tests.test_seed_integrity import EXPECTED_WORDS as EXPECTED_PARAULOGIC_WORD
 
 
 def _tokens(text: str) -> set[str]:
-    """Palabras completas, sin tildes, como las valida el juego."""
-    raw_tokens = re.findall(r"[A-ZÁÉÍÓÚÜÑ]+", text.upper())
-    return {
-        "".join(
-            char
-            for char in unicodedata.normalize("NFD", token)
-            if not unicodedata.combining(char)
-        )
-        for token in raw_tokens
-    }
+    """Palabras completas, **con** tilde, como las valida el juego.
+
+    Se comparan los términos **tal cual están escritos**, sin quitar tildes. La
+    versión anterior las quitaba, y eso convirtió la comprobación en un falso
+    positivo que llevaba tiempo dando: la palabra «ESTA» del conjunto de
+    Paraulógic aparecía en el listado de Wordle dentro de «sabes si cada letra
+    **está**», y el test informaba de una filtración que no existía.
+
+    Quitar la tilde no era una comparación más generosa, era otra comparación: una
+    filtración real se produciría con la palabra tal y como está en el seed, con
+    su tilde si la tiene, porque eso es lo que el jugador tiene que encontrar.
+    """
+    return set(re.findall(r"[A-ZÁÉÍÓÚÜÑ]+", text.upper()))
 
 VALID_PASSWORD = "una contraseña fácil"
 
