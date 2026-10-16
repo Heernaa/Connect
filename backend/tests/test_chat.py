@@ -49,6 +49,21 @@ def user_id_of(db: Session, username: str) -> int:
     return user_named(db, username).id
 
 
+def messages_of(client, body):
+    """Los mensajes cuyo texto es `body`, sea cual sea su posición.
+
+    **No se devuelve `messages[0]`.** La base de datos de desarrollo puede tener
+    mensajes de otras personas —es un entorno real, no uno de pruebas—, y buscar
+    por posición haría que estos tests dependieran de lo que haya escrito
+    cualquiera antes. Es el mismo error que cometía el test de Wordle antes de
+    arreglarlo: un test que pasa con la base de datos vacía y falla en cuanto
+    deja de estarlo no está probando lo que dice.
+    """
+    all_messages = client.get("/api/chat/messages").json()["messages"]
+
+    return [message for message in all_messages if message["body"] == body]
+
+
 def post_message(
     client: TestClient, db: Session, body: str, after: datetime | None = None
 ) -> None:
@@ -129,13 +144,13 @@ def test_a_message_brings_alias_text_and_time(
     signed_in: TestClient, db_session: Session
 ) -> None:
     """R-003: cada mensaje trae alias, texto y marca de tiempo."""
-    signed_in.post("/api/chat/messages", json={"body": "Buenos días"})
+    post_message(signed_in, db_session, "Buenos días")
 
-    message = signed_in.get("/api/chat/messages").json()["messages"][0]
+    message = messages_of(signed_in, "Buenos días")
 
-    assert message["body"] == "Buenos días"
-    assert message["alias"]
-    assert message["created_at"]
+    assert len(message) == 1
+    assert message[0]["alias"]
+    assert message[0]["created_at"]
 
 
 def test_reading_only_returns_what_is_new(
@@ -212,9 +227,10 @@ def test_polling_returns_the_marker_even_when_nothing_is_new(
 def test_messages_come_back_in_order(signed_in: TestClient, db_session: Session) -> None:
     """R-002: el orden es estable, también en el chat."""
     for text in ["uno", "dos", "tres"]:
-        signed_in.post("/api/chat/messages", json={"body": text})
+        post_message(signed_in, db_session, text)
 
-    bodies = [m["body"] for m in signed_in.get("/api/chat/messages").json()["messages"]]
+    all_messages = signed_in.get("/api/chat/messages").json()["messages"]
+    bodies = [m["body"] for m in all_messages if m["body"] in {"uno", "dos", "tres"}]
 
     assert bodies == ["uno", "dos", "tres"]
 
@@ -226,11 +242,12 @@ def test_html_is_shown_literally_and_not_executed(
     signed_in: TestClient, db_session: Session
 ) -> None:
     """R-004 y V.6: `<b>` sale como texto, no se convierte en negrita."""
-    signed_in.post("/api/chat/messages", json={"body": "<b>hola</b>"})
+    post_message(signed_in, db_session, "<b>hola</b>")
 
-    message = signed_in.get("/api/chat/messages").json()["messages"][0]
+    message = messages_of(signed_in, "<b>hola</b>")
 
-    assert message["body"] == "<b>hola</b>"
+    assert len(message) == 1
+    assert message[0]["body"] == "<b>hola</b>"
 
 
 def test_a_script_tag_is_also_shown_literally(
@@ -270,7 +287,7 @@ def test_links_are_rejected_by_the_server(
     response = signed_in.post("/api/chat/messages", json={"body": texto})
 
     assert response.status_code == 422
-    assert signed_in.get("/api/chat/messages").json()["messages"] == []
+    assert messages_of(signed_in, texto) == []
 
 
 @pytest.mark.parametrize(
@@ -487,23 +504,45 @@ def test_there_is_no_report_endpoint(client: TestClient, db_session: Session) ->
     comprueba mirando que no está, y fallando si aparece.
     """
     paths = client.app.openapi()["paths"]
-    report_routes = [path for path in paths if any(
-        word in path.lower() for word in ("report", "denunc", "denuncia", "moder", "flag")
-    )]
 
-    assert report_routes == []
+    # Se mira lo que tiene que ver con el **chat**. Hay un endpoint de reporte
+    # para el acertijo (spec 006 · R-017) y no cuenta: no es moderación, es
+    # registrar una respuesta correcta que el sistema rechazó (§2.1.4).
+    chat_report_routes = [
+        path
+        for path in paths
+        if "chat" in path
+        and any(
+            word in path.lower()
+            for word in ("report", "denunc", "denuncia", "moder", "flag")
+        )
+    ]
+
+    assert chat_report_routes == []
 
 
-def test_there_is_no_report_table(db_session: Session) -> None:
-    """R-007: tampoco hay dónde guardar una denuncia.
+def test_the_chat_has_no_report_table(db_session: Session) -> None:
+    """R-007: el chat no tiene dónde guardar una denuncia.
 
-    Sin moderadores, guardar la denuncia no sirve para nada: no hay nadie que la
-    lea. Una tabla así sería un sitio donde dejar datos de otras personas sin
-    ningún propósito detrás (§6.5).
+    Sin moderadores, guardar la denuncia del chat no sirve para nada: no hay
+    nadie que la lea. Una tabla así sería un sitio donde dejar datos de otras
+    personas sin ningún propósito detrás (§6.5).
+
+    Solo se miran las tablas **del chat**. `riddle_answer_reports` sí existe y no
+    cuenta: es el reporte del acertijo (§2.1.4), que no es una denuncia de chat
+    ni tiene moderación detrás.
     """
     from app.models.base import Base
 
-    assert not [name for name in Base.metadata.tables if "report" in name.lower()]
+    chat_tables = [name for name in Base.metadata.tables if "chat" in name.lower()]
+    chat_report_tables = [
+        name
+        for name in Base.metadata.tables
+        if "report" in name.lower() and "chat" in name.lower()
+    ]
+
+    assert chat_tables == ["chat_messages"]
+    assert chat_report_tables == []
 
 
 # --- R-009: privacidad --------------------------------------------------------
@@ -546,4 +585,11 @@ def test_system_messages_are_marked_as_such(db_session: Session) -> None:
     db_session.add(ChatMessage(author_id=None, body="Aviso del sistema", kind=MessageKind.SYSTEM))
     db_session.commit()
 
-    assert db_session.scalar(select(ChatMessage.kind)) == "system"
+    # Se busca **el que se ha creado**, no el primero de la tabla: puede haber
+    # mensajes de otros de antes.
+    stored = db_session.scalar(
+        select(ChatMessage).where(ChatMessage.body == "Aviso del sistema")
+    )
+
+    assert stored.kind == "system"
+    assert stored.author_id is None

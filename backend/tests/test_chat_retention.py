@@ -45,6 +45,19 @@ def signed_in(client: TestClient) -> TestClient:
     return client
 
 
+def _count_of(client: TestClient, body: str) -> int:
+    """Cuántos mensajes con ese texto ve la persona.
+
+    Cuenta **por texto**, no el total de la tabla. La base de datos de desarrollo
+    puede tener mensajes de otras personas, y contar filas enteras haría que el
+    resultado dependiera de lo que haya escrito cualquiera antes: el test
+    pasaría o fallaría según el día.
+    """
+    messages = client.get("/api/chat/messages").json()["messages"]
+
+    return len([message for message in messages if message["body"] == body])
+
+
 def _message(client: TestClient, db: Session, body: str, created_at: datetime) -> None:
     """Escribe un mensaje con fecha explícita.
 
@@ -88,7 +101,7 @@ def test_a_message_just_inside_the_period_is_kept(
     _message(signed_in, db_session, "todavía dentro", NOW - timedelta(days=89))
 
     assert purge_expired(db_session, NOW) == 0
-    assert signed_in.get("/api/chat/messages").json()["messages"] != []
+    assert _count_of(signed_in, "todavía dentro") == 1
 
 
 def test_a_message_past_the_period_is_deleted(
@@ -98,7 +111,7 @@ def test_a_message_past_the_period_is_deleted(
     _message(signed_in, db_session, "ya caducado", NOW - timedelta(days=91))
 
     assert purge_expired(db_session, NOW) == 1
-    assert db_session.scalar(select(func.count()).select_from(ChatMessage)) == 0
+    assert _count_of(signed_in, "ya caducado") == 0
 
 
 def test_reading_the_chat_purges_expired_messages(
@@ -114,7 +127,7 @@ def test_reading_the_chat_purges_expired_messages(
 
     signed_in.get("/api/chat/messages")
 
-    assert db_session.scalar(select(func.count()).select_from(ChatMessage)) == 0
+    assert _count_of(signed_in, "caducado") == 0
 
 
 def test_an_expired_message_is_never_downloaded(
@@ -245,7 +258,14 @@ def test_deleting_the_account_does_not_touch_other_people(
 
     signed_in.delete("/api/auth/me")
 
-    assert db_session.scalar(select(ChatMessage.body)) == "mensaje de antonio"
+    # Se busca **el mensaje de antonio**, no el primero de la tabla: puede haber
+    # mensajes de otras personas de antes, y si se borrara el de otra persona
+    # este test lo daría por bueno.
+    still_there = db_session.scalar(
+        select(ChatMessage).where(ChatMessage.body == "mensaje de antonio")
+    )
+
+    assert still_there is not None
 
 
 def test_deleting_the_account_revokes_the_session(

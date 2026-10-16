@@ -45,6 +45,10 @@ ACCOUNT_LOCKED = (
 #: persona tenga que corregir: o ha iniciado sesión o no lo ha hecho.
 NOT_SIGNED_IN = "No has iniciado sesión."
 
+#: Cuando el servidor no tiene nada que enseñar. Es un 404 con motivo: falta el
+#: contenido del juego, no la página.
+NOTHING_TO_SHOW = "No hay nada que enseñar todavía."
+
 #: Bloqueo (spec 007 · R-006). Dice **qué ha pasado y qué hacer**, y no quién
 #: bloqueó: esa persona ya es el único dato que se tiene de alguien más, y
 #: confirmar que ha bloqueado a otro sería filtrar cómo usa la plataforma.
@@ -60,6 +64,32 @@ CANNOT_BLOCK_SELF = "No puedes bloquearte a ti mismo."
 #: devuelve el 404 de FastAPI, porque quien lo ve no puede saber la diferencia
 #: entre «ese usuario no existe» y «no puedes ver ese usuario».
 USER_NOT_FOUND = "Ese usuario no existe."
+
+#: Reporte de acertijo (spec 006 · R-017, §2.1.4).
+REPORT_BLANK = "Escribe la respuesta que crees que es la correcta."
+REPORT_SAVED = (
+    "Gracias. Hemos guardado lo que escribiste para revisarlo. Esto no te da "
+    "puntos, pero sirve para arreglarlo."
+)
+#: El aviso al abandonar Wordle. Se dice antes de hacerlo, no después: es la
+#: única acción de todo el proyecto que no se puede deshacer, porque consume la
+#: única partida (§2.1.4).
+WORDLE_ALREADY_SPENT = (
+    "Al saltarla se acaba tu partida de Wordle y no podrás volver a jugar. Podrás "
+    "ver cómo te fue."
+)
+
+#: Mensaje de salida de partida (spec 006 · R-015). Se devuelve como campo de la
+#: respuesta y no como error: saltar la partida es lo que la persona pidió, así que
+#: la respuesta es una confirmación, no un fallo.
+GAME_LEFT = "Has salido de la partida. Tu progreso se queda guardado."
+
+#: Reportar una respuesta que **sí** es correcta. No debería llegar nunca desde
+#: la interfaz, pero si llega, se dice con claridad en vez de guardarlo.
+ANSWER_WAS_CORRECT = (
+    "Esa respuesta es correcta, así que no hace falta reportarla. Si has visto un "
+    "mensaje de error, vuelve a intentarlo."
+)
 
 #: Errores de validación genéricos.
 FIELDS_REQUIRED = "Faltan datos obligatorios."

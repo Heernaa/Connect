@@ -16,9 +16,17 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, require_current_user
-from app.errors import UNPROCESSABLE_CONTENT, ApiError
+from app.errors import (
+    ANSWER_WAS_CORRECT,
+    GAME_LEFT,
+    NOTHING_TO_SHOW,
+    REPORT_SAVED,
+    UNPROCESSABLE_CONTENT,
+    ApiError,
+)
 from app.models.content import ParaulogicSet, ParaulogicWord, Riddle, WordleWord
 from app.models.enums import GameId, LetterFeedback, SessionStatus
+from app.models.gameplay import RiddleAnswerReport
 from app.models.session import (
     GameSession,
     ParaulogicFoundWord,
@@ -27,7 +35,12 @@ from app.models.session import (
     WordleAttempt,
 )
 from app.models.user import User
-from app.schemas.games import RiddleAnswerCheck
+from app.schemas.games import (
+    AbandonResponse,
+    RiddleAnswerCheck,
+    RiddleReportRequest,
+    RiddleReportResponse,
+)
 from app.schemas.sessions import (
     AttemptResponse,
     ParaulogicAttemptRequest,
@@ -400,11 +413,7 @@ def submit_riddle_answer(
 
     is_correct = answers_match(payload.answer, riddle.accepted_answer)
 
-    attempts_used = db.scalar(
-        select(func.count())
-        .select_from(RiddleAnswer)
-        .where(RiddleAnswer.session_id == session.id)
-    ) or 0
+    attempts_used = _attempt_count(db, session.id)
 
     db.add(
         RiddleAnswer(
@@ -424,3 +433,124 @@ def submit_riddle_answer(
     db.commit()
 
     return RiddleAnswerCheck(is_correct=is_correct, attempts_used=attempts_used + 1)
+
+# --- Salir de la partida y reportar el acertijo (spec 006 · R-015, R-017) -----
+
+
+@router.post(
+    "/games/{game_id}/abandon",
+    response_model=AbandonResponse,
+    summary="Termina la partida en curso sin seguir jugando",
+)
+def abandon_session(
+    game_id: GameId,
+    user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+) -> AbandonResponse:
+    """Marca la partida como abandonada (R-015, §2.1.6).
+
+    Es el botón «Saltar partida», que la constitución pedía desde el principio y
+    que no existía: la columna `abandoned` estaba en el modelo desde la spec 002
+    sin que nada la escribiera.
+
+    **Un solo paso, sin confirmación** (§4.2). Volver atrás no es una acción
+    destructiva y nadie debería tener que confirmar que quiere dejar de jugar.
+
+    Qué pasa en cada juego (§2.1.4, §2.1.6):
+
+    · **Paraulógic y Acertijo:** solo se sale. El progreso se queda guardado y al
+      volver está exactamente donde estaba (§2.1.7). En Paraulógic no hay ni
+      derrota ni final, así que abandonar no significa nada más que cerrar.
+    · **Wordle:** consume la única partida. El resultado se conserva y la pantalla
+      lo enseña. Abandonar no es salir: es jugar mal a propósito, y por eso el
+      aviso se dice **antes** de hacerlo.
+
+    Abandonar dos veces no da error: la partida ya está abandonada, y eso es
+    exactamente lo que se pidió.
+    """
+    session, _ = _get_or_create_session(db, user.id, game_id)
+
+    gave_up = False
+
+    if session.status == SessionStatus.ACTIVE:
+        if game_id == GameId.WORDLE:
+            # Wordle se juega una vez (§2.1.4). Terminar o abandonar es lo mismo
+            # de cara a quien juega: no vuelve a haber palabra. Se conserva lo
+            # hecho, que ya está guardado intento a intento.
+            session.status = SessionStatus.FINISHED
+            session.finished_at = datetime.now(UTC)
+            gave_up = True
+
+        session.abandoned = True
+        db.commit()
+
+    return AbandonResponse(game_id=game_id, gave_up=gave_up, message=GAME_LEFT)
+
+
+@router.post(
+    "/games/riddle/report",
+    response_model=RiddleReportResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Registra una respuesta rechazada que la persona cree correcta",
+)
+def report_riddle_answer(
+    payload: RiddleReportRequest,
+    user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+) -> RiddleReportResponse:
+    """Guarda lo que alguien escribió cuando cree que acertó (R-017, §2.1.4).
+
+    **No concede puntos.** Ni uno. El campo `gave_points` de la respuesta dice
+    `false` a propósito: la constitución dice que el reporte no da puntos y una
+    respuesta que no lo afirmara dejaría esa decisión en manos del cliente, que
+    es justo lo que §4.2 prohíbe (prometer lo que no ocurre).
+
+    **Solo se acepta si la respuesta es incorrecta de verdad.** Si el servidor
+    comprueba que es correcta, no hay nada que reportar y se dice con claridad.
+    Aceptarlo sería guardar ruido sin motivo.
+
+    Se guarda el texto escrito y qué acertijo era, nada más: ni `username`, ni IP
+    (§6.5). El acertijo se resuelve por la partida de quien pregunta, no por lo
+    que diga el cuerpo (§6.6).
+    """
+    riddle = db.scalar(select(Riddle).order_by(Riddle.id).limit(1))
+    if riddle is None:
+        raise ApiError(NOTHING_TO_SHOW, status.HTTP_404_NOT_FOUND)
+
+    if answers_match(payload.given_answer, riddle.accepted_answer):
+        raise ApiError(ANSWER_WAS_CORRECT, status.HTTP_400_BAD_REQUEST)
+
+    session, _ = _get_or_create_session(db, user.id, GameId.RIDDLE)
+    attempts_used = _attempt_count(db, session.id)
+
+    report = RiddleAnswerReport(
+        riddle_id=riddle.id,
+        user_id=user.id,
+        given_answer=payload.given_answer,
+        attempt_number=attempts_used,
+    )
+    db.add(report)
+    db.commit()
+
+    return RiddleReportResponse(
+        report_id=report.id,
+        given_answer=report.given_answer,
+        message=REPORT_SAVED,
+    )
+
+
+def _attempt_count(db: Session, session_id: int) -> int:
+    """Cuántos intentos lleva esta partida.
+
+    Vive al final porque lo usan dos endpoints. `submit_riddle_answer` hacía este
+    mismo `select` con la misma forma; no se copia la expresión por si algún día
+    cambia.
+    """
+    return (
+        db.scalar(
+            select(func.count())
+            .select_from(RiddleAnswer)
+            .where(RiddleAnswer.session_id == session_id)
+        )
+        or 0
+    )

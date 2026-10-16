@@ -16,6 +16,7 @@ from app.models.content import (
     Riddle,
     WordleWord,
 )
+from app.models.gameplay import MAX_REPORT_LENGTH, RiddleAnswerReport
 from app.models.session import (
     GameSession,
     ParaulogicFoundWord,
@@ -27,6 +28,7 @@ from app.models.user import User, normalize_username
 
 __all__ = [
     "MAX_MESSAGE_LENGTH",
+    "MAX_REPORT_LENGTH",
     "AuthSession",
     "Base",
     "ChatMessage",
@@ -40,6 +42,7 @@ __all__ = [
     "ParaulogicWord",
     "Riddle",
     "RiddleAnswer",
+    "RiddleAnswerReport",
     "Score",
     "User",
     "UserBlock",

@@ -181,6 +181,8 @@ def test_no_extra_tables_beyond_the_declared_ones(seeded_db_session) -> None:
         # `test_no_personal_data.py` que no haya una tercera de moderación.
         "chat_messages",
         "user_blocks",
+        # spec 006 · R-017: los reportes de acertijo que el sistema rechazó.
+        "riddle_answer_reports",
     }
     rows = seeded_db_session.execute(
         text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")

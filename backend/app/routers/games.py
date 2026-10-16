@@ -13,7 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
-from app.errors import ApiError
+from app.errors import NOTHING_TO_SHOW, ApiError
 from app.models.content import (
     Game,
     ParaulogicHint,
@@ -23,7 +23,7 @@ from app.models.content import (
     WordleWord,
 )
 from app.models.enums import GameId, SessionStatus
-from app.models.session import GameSession
+from app.models.session import GameSession, Score
 from app.schemas.games import (
     GameSummary,
     HintResponse,
@@ -33,10 +33,6 @@ from app.schemas.games import (
 )
 
 router = APIRouter(prefix="/games", tags=["games"])
-
-#: Aviso que se devuelve cuando no hay partida que enseñar.
-NOTHING_TO_SHOW = "No hay nada que enseñar todavía."
-
 
 def _single_paraulogic_set(db: Session) -> ParaulogicSet:
     """Devuelve el único conjunto de letras del MVP (§2.1.3).
@@ -56,16 +52,54 @@ def _single_paraulogic_set(db: Session) -> ParaulogicSet:
     response_model=list[GameSummary],
     summary="Lista los juegos disponibles",
 )
-def list_games(db: Session = Depends(get_db)) -> list[GameSummary]:
+def list_games(
+    db: Session = Depends(get_db), current_user=Depends(get_current_user)
+) -> list[GameSummary]:
     """Devuelve identificador, nombre y descripción de cada juego (R-001).
 
     Se puede ver **sin iniciar sesión** (modo espectador, §2.4). Y no lleva
     ninguna solución: ni la palabra de Wordle ni la respuesta del acertijo.
+
+    Añade `played` y `score` por juego (spec 006 · R-018). Sin sesión valen
+    `False` y `0`, y la lista se ve exactamente igual: el estado de una partida
+    es de la cuenta, no del juego, y sin cuenta no hay estado que enseñar.
+
+    El estado se resuelve **en una consulta**, no una por juego. Tres juegos son
+    pocos, pero abrir la lista no debería costar tres viajes a la base de datos,
+    y si uno fallara la lista quedaría a medias con unos juegos y otros no.
     """
+    scores_by_game: dict[str, int] = {}
+
+    if current_user is not None:
+        scores_by_game = dict(
+            db.execute(
+                select(Score.game_id, func.coalesce(Score.points, 0)).where(
+                    Score.user_id == current_user.id
+                )
+            ).all()
+        )
+
+        # Una consulta para el estado de los tres, no una por juego. Pedirlo por
+        # separado obligaría a abrir la lista a tres viajes a la base de datos, y
+        # si uno fallara la lista quedaría a medias con unos juegos y otros no.
+        played_games = set(
+            db.scalars(
+                select(GameSession.game_id).where(GameSession.user_id == current_user.id)
+            ).all()
+        )
+    else:
+        played_games = set()
+
     games = db.scalars(select(Game).order_by(Game.sort_order, Game.id)).all()
 
     return [
-        GameSummary(game_id=game.game_id, name=game.name, description=game.description)
+        GameSummary(
+            game_id=game.game_id,
+            name=game.name,
+            description=game.description,
+            played=game.game_id in played_games,
+            score=int(scores_by_game.get(game.game_id, 0)),
+        )
         for game in games
     ]
 
