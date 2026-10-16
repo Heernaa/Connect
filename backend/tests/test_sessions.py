@@ -13,6 +13,14 @@ from app.models.enums import GameId
 from app.models.session import GameSession, Score
 from app.models.user import User
 
+#: El número de palabras del conjunto vive en `test_seed_integrity`, que es donde
+#: se comprueba que el seed y la base de datos digan lo mismo. Importarlo de ahí
+#: en vez de repetir la cifra es lo que evita el fallo que ya pasó una vez: al
+#: ampliar el conjunto hubo que actualizar la constitution, este archivo, el de
+#: las sesiones y el de la API, y basta con olvidar uno para que la suite diga
+#: que el conjunto tiene una palabra de menos.
+from tests.test_seed_integrity import EXPECTED_WORDS as EXPECTED_PARAULOGIC_WORDS
+
 VALID_PASSWORD = "una contraseña fácil"
 TARGET_WORD = "LUNAS"
 
@@ -50,7 +58,7 @@ def test_progress_is_saved_on_every_action(player: TestClient, db_session: Sessi
     Se comprueba en la base de datos, no en la respuesta: la respuesta podría
     mentir.
     """
-    assert player.post("/api/games/paraulogic/attempt", json={"word": "SENAR"}).status_code == 200
+    assert player.post("/api/games/paraulogic/attempt", json={"word": "ENTRAS"}).status_code == 200
 
     session = db_session.scalar(select(GameSession))
     assert session is not None
@@ -63,21 +71,21 @@ def test_progress_survives_leaving_and_coming_back(player: TestClient) -> None:
     Se usan dos peticiones independientes, como si entre ellas se hubiera cerrado
     el navegador.
     """
-    player.post("/api/games/paraulogic/attempt", json={"word": "SENAR"})
-    player.post("/api/games/paraulogic/attempt", json={"word": "ATRE"})
+    player.post("/api/games/paraulogic/attempt", json={"word": "ENTRAS"})
+    player.post("/api/games/paraulogic/attempt", json={"word": "TREN"})
 
     restored = player.get("/api/games/paraulogic/session").json()
 
-    assert sorted(restored["found_words"]) == ["ATRE", "SENAR"]
-    assert restored["pending_count"] == 19
+    assert sorted(restored["found_words"]) == ["ENTRAS", "TREN"]
+    assert restored["pending_count"] == EXPECTED_PARAULOGIC_WORDS - 2
 
 
 def test_first_time_sees_no_progress_instead_of_a_blank_screen(player: TestClient) -> None:
-    """R-002: quien entra por primera vez ve las 21 pendientes, no un error."""
+    """R-002: quien entra por primera vez ve todas las pendientes, no un error."""
     restored = player.get("/api/games/paraulogic/session").json()
 
     assert restored["found_words"] == []
-    assert restored["pending_count"] == 21
+    assert restored["pending_count"] == EXPECTED_PARAULOGIC_WORDS
 
 
 def test_paraulogic_has_no_attempt_limit(player: TestClient) -> None:
@@ -90,7 +98,7 @@ def test_paraulogic_has_no_attempt_limit(player: TestClient) -> None:
         response = player.post("/api/games/paraulogic/attempt", json={"word": "PESADO"})
         assert response.status_code == 422
 
-    assert player.post("/api/games/paraulogic/attempt", json={"word": "NAT"}).status_code == 200
+    assert player.post("/api/games/paraulogic/attempt", json={"word": "RES"}).status_code == 200
 
 
 def test_paraulogic_cannot_be_lost(player: TestClient, db_session: Session) -> None:
@@ -117,7 +125,7 @@ def test_failed_paraulogic_attempts_do_not_subtract_points(
 ) -> None:
     """R-006 y V.8: fallar no cuesta nada."""
     player.post("/api/games/paraulogic/attempt", json={"word": "PESADO"})
-    player.post("/api/games/paraulogic/attempt", json={"word": "NAT"})
+    player.post("/api/games/paraulogic/attempt", json={"word": "RES"})
 
     # 1 palabra correcta = 1 punto, los dos intentos fallidos no restaron.
     assert _stored_score(db_session, GameId.PARAULOGIC) == 1
@@ -127,8 +135,8 @@ def test_each_paraulogic_word_adds_one_point(
     player: TestClient, db_session: Session
 ) -> None:
     """R-006 y V.7: cada palabra encontrada suma 1 punto."""
-    player.post("/api/games/paraulogic/attempt", json={"word": "NAT"})
-    player.post("/api/games/paraulogic/attempt", json={"word": "ATRE"})
+    player.post("/api/games/paraulogic/attempt", json={"word": "RES"})
+    player.post("/api/games/paraulogic/attempt", json={"word": "TREN"})
 
     assert _stored_score(db_session, GameId.PARAULOGIC) == 2
 
@@ -138,7 +146,7 @@ def test_finding_the_same_word_twice_counts_once(
 ) -> None:
     """V.17 y §6.6: la puntuación nunca supera el número de palabras del conjunto."""
     for _ in range(4):
-        player.post("/api/games/paraulogic/attempt", json={"word": "NAT"})
+        player.post("/api/games/paraulogic/attempt", json={"word": "RES"})
 
     assert _stored_score(db_session, GameId.PARAULOGIC) == 1
 
@@ -163,7 +171,7 @@ def test_asking_for_hints_does_not_change_the_score(
     player: TestClient, db_session: Session
 ) -> None:
     """V.8: pedir pistas no altera la puntuación (§2.1.5)."""
-    player.post("/api/games/paraulogic/attempt", json={"word": "NAT"})
+    player.post("/api/games/paraulogic/attempt", json={"word": "RES"})
     before = _stored_score(db_session, GameId.PARAULOGIC)
 
     player.get("/api/games/paraulogic/hint")
@@ -186,7 +194,7 @@ def test_client_sent_score_is_rejected(player: TestClient, db_session: Session) 
     """
     response = player.post(
         "/api/games/paraulogic/attempt",
-        json={"word": "NAT", "score": 9999, "points": 9999},
+        json={"word": "RES", "score": 9999, "points": 9999},
     )
 
     assert response.status_code == 200
@@ -220,9 +228,9 @@ def test_score_can_never_exceed_the_number_of_words(
 ) -> None:
     """R-009: la puntuación de Paraulógic nunca supera el número de palabras."""
     for _ in range(10):
-        player.post("/api/games/paraulogic/attempt", json={"word": "NAT", "score": 500})
+        player.post("/api/games/paraulogic/attempt", json={"word": "RES", "score": 500})
 
-    assert (_stored_score(db_session, GameId.PARAULOGIC) or 0) <= 21
+    assert (_stored_score(db_session, GameId.PARAULOGIC) or 0) <= EXPECTED_PARAULOGIC_WORDS
 
 
 # --- Wordle (R-004, R-007) ---------------------------------------------------
@@ -349,7 +357,7 @@ def test_riddle_progress_is_restored(player: TestClient) -> None:
 
 def test_score_accumulates_per_game(player: TestClient, db_session: Session) -> None:
     """R-010: hay una puntuación por juego y se actualiza al resolver."""
-    player.post("/api/games/paraulogic/attempt", json={"word": "NAT"})
+    player.post("/api/games/paraulogic/attempt", json={"word": "RES"})
     player.post("/api/games/riddle/answer", json={"answer": "el mapa"})
 
     assert _stored_score(db_session, GameId.PARAULOGIC) == 1
@@ -360,7 +368,7 @@ def test_score_is_stored_without_needing_to_log_out(
     player: TestClient, db_session: Session
 ) -> None:
     """R-010: la puntuación se actualiza al resolver, no al cerrar sesión."""
-    player.post("/api/games/paraulogic/attempt", json={"word": "NAT"})
+    player.post("/api/games/paraulogic/attempt", json={"word": "RES"})
 
     assert _stored_score(db_session, GameId.PARAULOGIC) == 1
 

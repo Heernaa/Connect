@@ -69,7 +69,7 @@
 
 ### R-010 — Test de integridad del contenido
 
-- [x] 2.16 Test que comprueba 1 set, 21 palabras, 21 pistas, 1 Wordle y
+- [x] 2.16 Test que comprueba 1 set, 57 palabras, 57 pistas, 1 Wordle y
       1 acertijo, y que cada palabra se forma con las letras del conjunto.
       Verificar además que **falla** si se altera el seed.
       → *R-010*

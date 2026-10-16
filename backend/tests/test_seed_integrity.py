@@ -13,10 +13,16 @@ from tests.conftest import read_seed_sql
 
 #: Contenido fijado en la constitución §2.1.8.
 EXPECTED_SETS = 1
-EXPECTED_WORDS = 21
-EXPECTED_HINTS = 21
+EXPECTED_WORDS = 57
+EXPECTED_HINTS = 57
 EXPECTED_WORDLE_WORDS = 1
 EXPECTED_RIDDLES = 1
+
+#: La puntuación máxima de Paraulógic. No es `EXPECTED_WORDS` por casualidad: es
+#: una palabra por un punto (§2.1.5), así que el máximo **es** el número de
+#: palabras. Vive aquí y no en cada test que necesita el máximo, para que
+#: ampliar el conjunto no obligue a ir a buscarlos todos.
+MAX_PARAULOGIC_POINTS = EXPECTED_WORDS
 
 #: Conjunto de letras del MVP.
 EXPECTED_LETTERS = "AENRST"
@@ -33,7 +39,7 @@ def _only_set(seeded_db_session) -> ParaulogicSet:
 
 
 def test_mvp_content_has_the_expected_counts(seeded_db_session) -> None:
-    """R-009: 1 set, 21 palabras, 21 pistas, 1 palabra de Wordle y 1 acertijo."""
+    """R-009: 1 set, 57 palabras, 57 pistas, 1 palabra de Wordle y 1 acertijo."""
     counts = {
         "sets": seeded_db_session.scalar(select(func.count()).select_from(ParaulogicSet)),
         "words": seeded_db_session.scalar(select(func.count()).select_from(ParaulogicWord)),
@@ -110,9 +116,25 @@ def test_hints_never_reveal_the_word(seeded_db_session) -> None:
     assert rows, "No hay pistas que comprobar."
 
     for word, hint_text in rows:
-        assert word.upper() not in hint_text.upper(), (
+        assert word.upper() not in _hint_tokens(hint_text), (
             f"La pista de «{word}» contiene la palabra: «{hint_text}»."
         )
+
+
+def _hint_tokens(text_value: str) -> set[str]:
+    """Tokens completos sin tildes, como compara el validador del juego."""
+    import re
+    import unicodedata
+
+    tokens = re.findall(r"[A-ZÁÉÍÓÚÜÑ]+", text_value.upper())
+    return {
+        "".join(
+            char
+            for char in unicodedata.normalize("NFD", token)
+            if not unicodedata.combining(char)
+        )
+        for token in tokens
+    }
 
 
 def test_every_word_has_exactly_its_own_hint(seeded_db_session) -> None:
@@ -140,6 +162,63 @@ def test_every_word_has_exactly_its_own_hint(seeded_db_session) -> None:
     assert len(set(hint_texts)) == EXPECTED_HINTS, (
         "Hay palabras que comparten el texto de la pista: alguna tiene la pista de "
         "otra palabra."
+    )
+
+
+def test_seed_contains_the_reviewed_word_set(seeded_db_session) -> None:
+    """R-009: el contenido publicado coincide con la lista revisada.
+
+    La regla de letras por sí sola no demuestra que una secuencia sea una palabra
+    española. Este conjunto explícito hace que una edición accidental no pueda
+    reintroducir formas inventadas, extranjerismos ni formas con letras repetidas.
+    """
+    words = {row.word for row in seeded_db_session.scalars(select(ParaulogicWord)).all()}
+    expected = {
+        "ENTRAS", "RENTAS", "RESTAN", "SENTAR", "TENSAR", "TERNAS",
+        "ANTES", "ARNES", "ARTES", "ASTER", "ESTAN", "ESTAR", "ENTRA",
+        "NETAS", "RASEN", "RENTA", "RESTA", "SERAN", "SERNA", "TENAS",
+        "TENSA", "TERNA", "TRAEN", "TRAES", "AREN", "ARES", "ANTE",
+        "ARTE", "ASEN", "ATEN", "ATES", "ERAN", "ERAS", "ESTA", "NETA",
+        "RETA", "SEAN", "SENA", "SERA", "SETA", "TENA", "TREN", "TRES", "TRAE",
+        "TRAS", "TASE", "ARE", "ASE", "ERA", "ESA", "RES", "SEA", "SEN",
+        "SER", "TAN", "TEA", "TEN",
+    }
+
+    assert words == expected, (
+        f"El set no coincide con las {len(expected)} palabras revisadas. "
+        f"Faltan: {sorted(expected - words)}; sobran: {sorted(words - expected)}."
+    )
+
+
+def test_no_hint_gives_away_a_word_of_the_same_length(seeded_db_session) -> None:
+    """R-010: ninguna pista regala una palabra accionable (spec 004 · R-003).
+
+    Pedir ayuda no puede resolver el juego por quien la pide. Como la respuesta
+    del servidor dice cuántas letras tiene la palabra buscada, lo único que de
+    verdad regala algo es que la pista contenga **otra palabra de esa misma
+    longitud**: esa no se puede descartar por tamaño.
+
+    Se comprueba aquí y no solo en la API porque el fallo se detecta al **escribir**
+    la pista, no al servirla. Y comprueba todas contra todas: si la pista de
+    `RESTA` contiene `RES`, el jugador ve un trozo de la palabra y puede
+    reconstruirla.
+    """
+    words = [row.word.upper() for row in seeded_db_session.scalars(select(ParaulogicWord))]
+    hints = seeded_db_session.execute(
+        select(ParaulogicWord.word, ParaulogicHint.hint_text).join(
+            ParaulogicHint, ParaulogicHint.word_id == ParaulogicWord.id
+        )
+    ).all()
+
+    leaks = [
+        f"{word}: la pista contiene {other}"
+        for word, hint_text in hints
+        for other in words
+        if len(other) == len(word) and other in _hint_tokens(hint_text)
+    ]
+
+    assert leaks == [], "Estas pistas regalan una palabra de la misma longitud:\n  " + "\n  ".join(
+        leaks
     )
 
 

@@ -62,7 +62,12 @@ manipularse.
   encontrado**.
 - Las palabras marcadas como poco comunes (`is_common = false`) **se priorizan**,
   porque son las que más atascan a un usuario mayor (§1.1).
-- La pista **no revela la palabra**: es una ayuda, no la solución.
+- La respuesta incluye la longitud de la palabra pendiente a la que corresponde
+  la pista.
+- La pista no contiene la palabra que describe ni ninguna otra palabra válida
+  del conjunto de **esa misma longitud**. Como la longitud ya se muestra, las
+  palabras de otra longitud se pueden descartar y no son una filtración
+  accionable.
 - **Las pistas no restan puntos** (§2.1.5). No hay que implementar ninguna
   penalización por pedirlas.
 
@@ -110,7 +115,8 @@ manipularse.
       pendientes, sin las soluciones.
 - [x] Una palabra ya encontrada no aparece en la respuesta.
 - [x] La API de pistas prioriza las palabras poco comunes.
-- [x] La pista no contiene la palabra que revela.
+- [x] La pista no contiene la palabra que describe ni otra palabra válida de su
+      misma longitud.
 - [x] Pedir pistas **no** descuenta puntos.
 - [x] `GET /api/games/wordle` no devuelve la palabra si el jugador ya terminó.
 - [x] `GET /api/games/acertijo` no contiene `accepted_answer`.

@@ -1,10 +1,19 @@
 """API de contenido de los juegos (spec 004).
 
-Los tests importantes son los de «no contiene soluciones». Se escriben como
-**comprobación literal sobre el cuerpo entero de la respuesta**, no mirando campos
-concretos: así siguen siendo válidos si mañana el formato cambia, que es
-justamente lo que un test atado a la estructura no conseguiría.
+Los tests importantes son los de «no contiene soluciones». Se escriben sobre el
+cuerpo entero de la respuesta, no mirando campos concretos: así siguen siendo
+válidos si mañana el formato cambia, que es justo lo que un test atado a la
+estructura no conseguiría.
+
+Se buscan **palabras completas**, no subcadenas, y solo cuando pueden ser
+accionables. Con un conjunto que incluye palabras de tres letras —`ERA`, `RES`,
+`TEN`, `SEA`— el substring aparecería dentro de palabras corrientes como
+«primera» o «intentos», que no revelan nada. Ver `test_list_contains_no_solution`
+y `test_hint_does_not_reveal_the_word`.
 """
+
+import re
+import unicodedata
 
 import pytest
 from fastapi.testclient import TestClient
@@ -15,6 +24,27 @@ from app.models.content import ParaulogicWord, Riddle, WordleWord
 from app.models.enums import GameId, SessionStatus
 from app.models.session import GameSession, ParaulogicFoundWord
 from app.models.user import User
+
+#: El número de palabras del conjunto vive en `test_seed_integrity`, que es donde
+#: se comprueba que el seed y la base de datos digan lo mismo. Importarlo de ahí
+#: en vez de repetir la cifra es lo que evita el fallo que ya pasó una vez: al
+#: ampliar el conjunto hubo que actualizar la constitution, este archivo, el de
+#: las sesiones y el de la API, y basta con olvidar uno para que la suite diga
+#: que el conjunto tiene una palabra de menos.
+from tests.test_seed_integrity import EXPECTED_WORDS as EXPECTED_PARAULOGIC_WORDS
+
+
+def _tokens(text: str) -> set[str]:
+    """Palabras completas, sin tildes, como las valida el juego."""
+    raw_tokens = re.findall(r"[A-ZÁÉÍÓÚÜÑ]+", text.upper())
+    return {
+        "".join(
+            char
+            for char in unicodedata.normalize("NFD", token)
+            if not unicodedata.combining(char)
+        )
+        for token in raw_tokens
+    }
 
 VALID_PASSWORD = "una contraseña fácil"
 
@@ -84,10 +114,23 @@ def test_list_contains_id_name_and_description(client: TestClient) -> None:
 
 
 def test_list_contains_no_solution(client: TestClient, db_session: Session) -> None:
-    """R-001 y V.2: el listado no incluye la palabra ni la respuesta."""
-    body = client.get("/api/games").text.upper()
+    """R-001 y V.2: el listado no incluye la palabra ni la respuesta.
 
-    leaked = [secret for secret in _all_solution_strings(db_session) if secret in body]
+    Se comparan **palabras completas**, no subcadenas. Antes se buscaba la
+    solución como subcadena del cuerpo entero, y con las 11 palabras de tres
+    letras del conjunto eso dejó de ser comprobable: `ERA` aparece dentro de
+    «primera» y `TEN` dentro de «intentos», que son cosas de la descripción de
+    un juego y no la solución de nada.
+
+    La diferencia importa: que `RES` aparezca como trozo de «respuesta» en una
+    descripción **no revela nada**, porque quien lee sigue teniendo que encontrar
+    `RES` entre las letras. Lo que sí sería una filtración es que la respuesta
+    contenga la palabra **como término**, y eso es lo que se comprueba.
+    """
+    body = client.get("/api/games").text.upper()
+    tokens = _tokens(body)
+
+    leaked = [secret for secret in _all_solution_strings(db_session) if secret in tokens]
 
     assert leaked == [], f"El listado ha filtrado soluciones: {leaked}"
 
@@ -100,14 +143,15 @@ def test_paraulogic_returns_letters_and_pending_count(client: TestClient) -> Non
     body = client.get("/api/games/paraulogic").json()
 
     assert body["letters"] == "AENRST"
-    assert body["pending_count"] == 21
+    assert body["pending_count"] == EXPECTED_PARAULOGIC_WORDS
 
 
 def test_paraulogic_contains_no_solution(client: TestClient, db_session: Session) -> None:
-    """R-002 y V.3: ninguna de las 21 palabras sale en la respuesta."""
-    body = client.get("/api/games/paraulogic").text.upper()
+    """R-002 y V.3: ninguna palabra del set sale en la respuesta."""
+    body = client.get("/api/games/paraulogic").text
+    tokens = _tokens(body)
 
-    leaked = [secret for secret in _all_solution_strings(db_session) if secret in body]
+    leaked = [secret for secret in _all_solution_strings(db_session) if secret in tokens]
 
     assert leaked == [], f"Paraulógic ha filtrado soluciones: {leaked}"
 
@@ -178,17 +222,44 @@ def test_hint_prioritises_uncommon_words(client: TestClient) -> None:
 
 
 def test_hint_does_not_reveal_the_word(client: TestClient, db_session: Session) -> None:
-    """R-003 y V.6: la pista no revela la palabra.
+    """R-003 y V.6: la pista no revela la palabra que describe.
 
     Se comprueba contra **todas** las palabras del conjunto, porque una pista
     concreta solo se compararía bien con una.
+
+    **Por qué se comparan palabras completas.** Buscar subcadenas hacía que
+    secuencias como `ERA` dentro de «primera» parecieran filtraciones. Se
+    normalizan las tildes y se comparan tokens completos.
+
+    Ese rechazo no protegía de nada. La respuesta del servidor dice cuántas
+    letras tiene la palabra y si es común, así que quien lee la pista puede
+    **descartar por longitud** cualquier palabra que no encaje. Lo que sí da la
+    pista es un regalo útil es si aparece una palabra **de la misma longitud**
+    que la que se está describiendo: esa sí es accionable, porque ya no se puede
+    descartar por tamaño.
+
+    La regla que queda es la que protege: la pista no contiene la palabra que
+    describe, ni ninguna de su misma longitud.
     """
     words = [word.upper() for word in db_session.scalars(select(ParaulogicWord.word)).all()]
 
     for _ in range(6):
-        body = client.get("/api/games/paraulogic/hint").text.upper()
-        leaked = [word for word in words if word in body]
-        assert leaked == [], f"La pista ha revelado: {leaked}"
+        # Una sola petición para el texto y para la longitud. Pedirla dos veces
+        # devolvía dos pistas distintas —la segunda puede ser de otra palabra y
+        # de otra longitud— y el test comparaba el texto de una con la longitud
+        # de la otra: un fallo que depende del azar y no del código.
+        response = client.get("/api/games/paraulogic/hint")
+        body = response.json()["hint_text"]
+        hinted_length = response.json()["word_length"]
+
+        leaked = [
+            word for word in words
+            if len(word) == hinted_length and word in _tokens(body)
+        ]
+
+        assert leaked == [], (
+            f"La pista ha revelado una palabra de {hinted_length} letras: {leaked}"
+        )
 
 
 def test_asking_for_hints_does_not_change_the_score(

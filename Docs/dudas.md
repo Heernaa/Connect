@@ -73,9 +73,9 @@ detalle: es trabajo de redacción.
 | ---------- | -------- | --------------------------------------------- |
 | Wordle     | 1 palabra | `LUNAS`                                      |
 | Acertijo   | 1         | "Tengo ciudades..." → el mapa                 |
-| Paraulógic | 1 set    | Letras `A E N R S T` → **21 palabras**        |
+| Paraulógic | 1 set    | Letras `A E N R S T` → **57 palabras**        |
 
-Paraulógic cumple el requisito: **6 letras** (mínimo 5) y **21 palabras**
+Paraulógic cumple el requisito: **6 letras** (mínimo 5) y **57 palabras**
 (mínimo 10). La regla de formación se verificó por script: cada palabra usa solo
 letras del conjunto y ninguna más veces de las que aparece.
 

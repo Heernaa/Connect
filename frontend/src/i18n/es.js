@@ -311,7 +311,13 @@ export const es = {
     submit: 'Comprobar la palabra',
     checking: 'Comprobando…',
     correct: '¡Muy bien! Has encontrado {word}.',
-    incorrect: 'Esa palabra no está en el conjunto. Prueba otra: no pasa nada por fallar.',
+    // El mensaje NO dice «no está en el conjunto»: las letras sí valían, porque si
+    // no valieran el servidor habría dicho qué letra sobra. Decirlo era falso y
+    // además convertía un acierto razonable en un callejón sin salida, que es lo
+    // que pasó con `ENTRAS` y con las 47 palabras que faltaban hasta que se
+    // amplió el conjunto (§2.1.4).
+    incorrect:
+      'Esas letras están bien, pero esa palabra no es una de las del juego. Prueba otra: no pasa nada por fallar.',
     foundHeading: 'Palabras encontradas ({count})',
     foundEmpty: 'Todavía no has encontrado ninguna palabra.',
     foundOne: 'Has encontrado 1 palabra.',

@@ -49,7 +49,7 @@
 | Longitud mínima de contraseña| 8 caracteres, sin exigir símbolos (§6.2)                  |
 | Framework de pruebas         | `pytest` + `httpx` (§5)                                   |
 | Intervalo de polling del chat | 10 segundos (§2.3)                                      |
-| Contenido del MVP             | 1 Wordle, 1 acertijo, 1 set de Paraulógic (21 palabras) §2.1.8 |
+| Contenido del MVP             | 1 Wordle, 1 acertijo, 1 set de Paraulógic (57 palabras) §2.1.8 |
 | Longitud máxima de mensaje   | 500 caracteres (§6.8)                                    |
 
 ### 0.2 Pendiente de decisión
@@ -371,19 +371,26 @@ Contenido concreto cargado en `data/seed_v0.sql`. Es el mínimo acordado:
 | ---------- | -------- | -------------------------------------------------- |
 | Wordle     | 1 palabra | `LUNAS` (5 letras)                                 |
 | Acertijo   | 1         | "Tengo ciudades... ¿Qué soy?" → el mapa            |
-| Paraulógic | 1 set    | Letras `A E N R S T` → **21 palabras**              |
+| Paraulógic | 1 set    | Letras `A E N R S T` → **57 palabras**              |
 
 **Requisito de Paraulógic:** mínimo 5 letras y al menos 10 palabras.
-Cumple con margen: 6 letras y 21 palabras.
+Cumple con margen: 6 letras y 57 palabras.
 
 Regla de formación: cada palabra usa **solo** letras del conjunto y **ninguna
 letra más veces** de las que aparece en él. Verificado por script, no a ojo.
 
-Las palabras están marcadas con `is_common`: las cinco más literarias
-(`NAT`, `SENAR`, `ATRE`, `ASTER`, `TRANSE`) están marcadas para que el botón de
-pista las trate con más cuidado (§1.1).
+El conjunto contiene **57 respuestas revisadas**: formas españolas que se
+pueden escribir con las seis letras sin repetir ninguna. Incluye vocabulario
+común y algunas formas verbales o entradas menos frecuentes, que se marcan con
+`is_common` para priorizarlas al ofrecer pistas. No afirma enumerar todas las
+permutaciones posibles: las entradas dudosas, extranjerismos y nombres propios
+se excluyen. Así, `ENTRAS` es válida y se acepta.
 
-> Con 21 palabras y 1 punto cada una, la puntuación máxima de Paraulógic es 21.
+Las palabras menos frecuentes (`ASTER`, `RASEN`, `SERNA`, `SEN`, `TENA`, entre
+otras) tienen `is_common = false` para que el botón de pista las priorice
+(§1.1).
+
+> Con 57 palabras y 1 punto cada una, la puntuación máxima de Paraulógic es 57.
 
 ### 2.2 Cuentas de usuario
 
@@ -834,6 +841,7 @@ Esta constitución cambia explícitamente, nunca por inercia.
 | v0.10   | 2026-10-16 | Lenguaje visual del frontend: sistema de tokens derivado del diseño de Figma y adaptado a WCAG 2.2 AA, documentado en [`sistema-diseno.md`](./sistema-diseno.md). El color de Figma se conserva; los valores que fallaban el contraste se sustituyen por otros medidos. Ningún principio se relaja. | — |
 | v0.11   | 2026-10-16 | Chat: retención de **90 días** y polling de **10 s** (`[CHAT_RETENTION]` y `[POLL_INTERVAL]` resueltos, bloqueaban la spec 007). Límite de mensaje de **500 caracteres**. Derecho de borrado de datos implementado; el de exportación queda como deuda (§11, fila 7). Se registra además que falta la spec de la interfaz de los tres juegos (§11, fila 8). | — |
 | v0.12   | 2026-10-16 | Las pantallas de Paraulógic, Wordle y Acertijo entran en la **spec 006**, que deja de ser solo-frontend. Se añade el botón «Saltar partida» que §2.1.6 exigía y que nada escribía desde la spec 002, y el reporte de respuesta correcta rechazada de §2.1.4, que no existía en ninguna spec. La 008 queda desbloqueada. | — |
+| v0.13   | 2026-10-16 | Se amplía el conjunto de Paraulógic y se corrigen entradas y definiciones dudosas; queda en **57 respuestas revisadas** (§2.1.8). Se excluyen extranjerismos, nombres propios y formas que no se pueden formar con una sola copia de cada letra. Endurece la regla de pistas de la spec 004: una pista no puede contener ninguna palabra válida **de la misma longitud** que la que describe. | — |
 
 ---
 

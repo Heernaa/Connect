@@ -15,11 +15,11 @@ def test_accepts_a_valid_word_and_returns_it_uppercase() -> None:
 
 
 def test_accepts_a_word_that_uses_every_letter_once() -> None:
-    assert validate_word("TRANSE", LETTERS) == "TRANSE"
+    assert validate_word("ENTRAS", LETTERS) == "ENTRAS"
 
 
 def test_ignores_surrounding_spaces_and_case() -> None:
-    assert validate_word("  senar  ", LETTERS) == "SENAR"
+    assert validate_word("  enTRas  ", LETTERS) == "ENTRAS"
 
 
 def test_rejects_a_word_with_a_letter_outside_the_set() -> None:

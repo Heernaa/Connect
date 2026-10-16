@@ -143,7 +143,7 @@ cualquier otra instrucción.
 ├── backend/              # FastAPI — API, validación y puntuación
 ├── frontend/             # React + Tailwind — interfaz y mecánica de juego
 ├── data/
-│   └── seed_v0.sql       # Contenido de los juegos (LUNAS, acertijo, 21 palabras)
+│   └── seed_v0.sql       # Contenido de los juegos (LUNAS, acertijo, 57 respuestas)
 └── Docs/
     ├── constitution.md   # Documento normativo del proyecto
     ├── dudas.md           # Preguntas abiertas y decisiones tomadas
@@ -235,7 +235,7 @@ docker compose down -v   # Para y borra también el volumen de PostgreSQL
 | [`Docs/constitution.md`](Docs/constitution.md) | Principios, alcance, seguridad, deuda técnica y registro de decisiones. **Normativo.** |
 | [`Docs/specs/`](Docs/specs/README.md) | Especificaciones numeradas, con requisitos y planes de tareas. |
 | [`Docs/dudas.md`](Docs/dudas.md) | Preguntas abiertas, decisiones tomadas y riesgos asumidos. |
-| [`data/seed_v0.sql`](data/seed_v0.sql) | Contenido del MVP: 1 palabra de Wordle, 1 acertijo y 21 palabras de Paraulógic. |
+| [`data/seed_v0.sql`](data/seed_v0.sql) | Contenido del MVP: 1 palabra de Wordle, 1 acertijo y 57 respuestas de Paraulógic. |
 
 ---
 

@@ -103,7 +103,7 @@ Tests que verifiquen la ausencia de estas columnas.
 
 - El contenido de `data/seed_v0.sql` queda cargado en desarrollo.
 - Se carga **1** palabra de Wordle, **1** acertijo y **1** set de Paraulógic con
-  **21 palabras** y **21 pistas** (§2.1.8).
+  **57 palabras** y **57 pistas** (§2.1.8).
 - La carga es **idempotente**: se puede repetir sin duplicar contenido.
 
 ### R-010 — Test de integridad del contenido
@@ -111,7 +111,7 @@ Tests que verifiquen la ausencia de estas columnas.
 Existe un test automático que verifica que el contenido cargado es el
 esperado, y **falla si no lo es**.
 
-- Comprueba: 1 set, 21 palabras, 21 pistas, 1 palabra de Wordle, 1 acertijo.
+- Comprueba: 1 set, 57 palabras, 57 pistas, 1 palabra de Wordle, 1 acertijo.
 - Comprueba que **cada palabra de Paraulógic se forma únicamente con las letras
   del conjunto**, sin repetir ninguna más de lo que aparece.
 - Comprueba que la palabra de Wordle tiene 5 letras.

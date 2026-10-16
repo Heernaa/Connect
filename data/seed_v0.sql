@@ -55,89 +55,162 @@ ON CONFLICT (game_id) DO NOTHING;
 -- Conjunto: A, E, N, R, S, T  (6 letras; el mínimo exigido eran 5)
 --
 -- Verificado por script, no a ojo: el test de integridad de la spec 002 falla
--- si alguna de las 21 palabras incumple la regla. El requisito era "al menos 10
--- palabras": se cumple con margen.
---
--- La lista va de más común a más literaria, para que las pistas prioricen las
--- difíciles.
+-- si alguna palabra incumple la regla de las letras, si alguna se repite, si
+-- alguna se queda sin pista o si una pista revela su propia palabra.
 -- -----------------------------------------------------------------------------
 
 INSERT INTO paraulogic_sets (letters, lang)
 VALUES ('AENRST', 'es')
 ON CONFLICT DO NOTHING;
 
--- is_common = FALSE en las cinco palabras más literarias. El botón de pistas
--- las prioriza, porque un usuario mayor con dificultad con una palabra antigua
--- debería poder pedir ayuda sin vergüenza (§1.1).
+-- Respuestas revisadas del conjunto, de más larga a más corta.
+--
+-- Se aceptan entradas del DLE y formas verbales correctas. Se excluyen nombres
+-- propios, siglas, falsos amigos y formas inventadas. Esta es una selección
+-- revisada, no una afirmación de que se hayan agotado todas las combinaciones.
+--
+-- Las formas que llevan tilde se guardan sin ella porque el juego solo tiene las
+-- letras A, E, N, R, S, T; la validación normaliza las tildes.
+-- El conjunto suma 57 respuestas: 6 de seis letras, 18 de cinco, 22 de cuatro
+-- y 11 de tres. Todas usan solo letras disponibles, sin repetirlas.
+--
+-- Las entradas menos frecuentes (subjuntivos, botánica o vocabulario
+-- especializado) llevan is_common = FALSE para que se prioricen al ofrecer
+-- pistas (§1.1).
+
 INSERT INTO paraulogic_words (set_id, word, definition, is_common)
 SELECT s.id, v.word, v.definition, v.is_common
 FROM paraulogic_sets s
 CROSS JOIN (VALUES
-    ('ESTAR',  'Verbo que indica un estado o situación.',                        TRUE),
-    ('TRAE',   'Acompaña o conduce algo a un lugar.',                            TRUE),
-    ('SETA',   'Objeto formado por un conjunto, cualquier cosa que se pone.',    TRUE),
-    ('RESTA',  'Lo que queda al quitar algo a una cantidad.',                    TRUE),
-    ('TENAR',  'Tener en su poder una cosa o disponer de ella.',                 TRUE),
-    ('RENTA',  'Pago periódico que se hace a cambio de un servicio.',            TRUE),
-    ('ARTE',   'Expresión de la actividad humana creadora.',                     TRUE),
-    ('ARTES',  'Conjunto de expresiones de la actividad creadora.',              TRUE),
-    ('TERNAS', 'Grupos de tres elementos.',                                      TRUE),
-    ('ANTER',  'Cosa que va delante, en el orden o en el espacio.',              TRUE),
-    ('ERAN',   'Tercera persona del plural del verbo ser, en pasado.',           TRUE),
-    ('SERA',   'Tercera persona del singular del verbo ser.',                    TRUE),
-    ('SEN',    'Pronombre que sustituye a una persona.',                         TRUE),
-    ('NATE',   'Embarcación pequeña de fondo plano.',                            TRUE),
-    ('NAT',    'Significa «nació». Tres letras.',                                 FALSE),
-    ('RESTAN', 'Tercera persona del plural del verbo restar.',                   TRUE),
-    ('SERAN',  'Tercera persona del plural del verbo ser, en futuro.',           TRUE),
-    ('SENAR',  'Segar la hierba de un terreno.',                                 FALSE),
-    ('ATRE',   'Piezas que se ponen en un juego para poder jugar.',              FALSE),
-    ('ASTER',  'Flor de la familia de las margaritas.',                          FALSE),
-    ('TRANSE', 'Lote de terreno dedicado al pastoreo.',                          FALSE)
+    ('ENTRAS', 'Forma verbal que indica pasar de fuera hacia dentro, dirigida a una persona.', TRUE),
+    ('RENTAS', 'Ingresos periódicos recibidos o pagos periódicos por el uso de un bien.', TRUE),
+    ('RESTAN', 'Forma verbal que expresa la cantidad que queda al quitar algo.', TRUE),
+    ('SENTAR', 'Verbo que significa colocar a alguien en una silla o tomar asiento.', TRUE),
+    ('TENSAR', 'Verbo que significa poner tirante una cuerda o un músculo.', TRUE),
+    ('TERNAS', 'Plural de un grupo compuesto por tres elementos.', TRUE),
+    ('ANTES', 'Adverbio que indica que algo ocurre con anterioridad.', TRUE),
+    ('ARNES', 'Conjunto de correas que sujeta o asegura a una persona o animal.', TRUE),
+    ('ARTES', 'Plural de una actividad creativa, técnica o manual.', TRUE),
+    ('ASTER', 'Género de plantas vivaces de la familia de las compuestas.', FALSE),
+    ('ESTAN', 'Forma verbal que indica dónde se encuentran varias personas o cosas.', TRUE),
+    ('ESTAR', 'Verbo que indica una situación, ubicación o estado temporal.', TRUE),
+    ('ENTRA', 'Forma verbal que indica pasar de fuera hacia dentro.', TRUE),
+    ('NETAS', 'Plural femenino de un adjetivo que indica que no hay descuentos.', TRUE),
+    ('RASEN', 'Forma verbal de alisar o nivelar una superficie.', FALSE),
+    ('RENTA', 'Ingreso periódico o pago por el uso de un bien.', TRUE),
+    ('RESTA', 'Resultado de quitar una cantidad a otra; también, una operación aritmética.', TRUE),
+    ('SERAN', 'Forma futura de un verbo copulativo para varias personas.', TRUE),
+    ('SERNA', 'Porción de tierra destinada a la siembra.', FALSE),
+    ('TENAS', 'Plural de una palabra que nombra útiles de un arte de pesca.', FALSE),
+    ('TENSA', 'Adjetivo femenino que describe algo tirante o rígido.', TRUE),
+    ('TERNA', 'Grupo de tres personas o cosas que optan a algo.', TRUE),
+    ('TRAEN', 'Forma verbal que indica llevar algo hacia aquí, con sujeto plural.', TRUE),
+    ('TRAES', 'Forma verbal que indica llevar algo hacia aquí, dirigida a quien escucha.', TRUE),
+    ('AREN', 'Subjuntivo plural de arar, referido a varias personas.', FALSE),
+    ('ARES', 'Subjuntivo de arar dirigido a quien escucha.', FALSE),
+    ('ANTE', 'Preposición que significa «frente a» o «en presencia de».', TRUE),
+    ('ARTE', 'Actividad humana que crea obras estéticas o expresivas.', TRUE),
+    ('ASEN', 'Subjuntivo plural de asar, referido a varias personas.', TRUE),
+    ('ATEN', 'Subjuntivo plural de atar, referido a varias personas.', TRUE),
+    ('ATES', 'Subjuntivo de atar dirigido a quien escucha.', TRUE),
+    ('ERAN', 'Forma de pasado de un verbo copulativo para varias personas.', TRUE),
+    ('ERAS', 'Forma de pasado de un verbo copulativo para una persona.', TRUE),
+    ('ESTA', 'Determinante demostrativo femenino que señala algo cercano.', TRUE),
+    ('NETA', 'Adjetivo femenino que indica que una cantidad queda limpia de descuentos.', TRUE),
+    ('RETA', 'Forma verbal que significa desafiar a alguien.', TRUE),
+    ('SEAN', 'Forma plural de subjuntivo de un verbo que expresa identidad o existencia.', TRUE),
+    ('SERA', 'Bolsa grande tejida con esparto.', FALSE),
+    ('SETA', 'Hongo con sombrero y pie; algunas especies son comestibles.', TRUE),
+    ('SEN', 'Arbusto oriental cuyas hojas se emplean en infusión.', FALSE),
+    ('TENA', 'Conjunto de útiles empleados en una modalidad de pesca.', FALSE),
+    ('SENA', 'Otro nombre de un arbusto cuyas hojas se emplean en infusión.', FALSE),
+    ('TASE', 'Forma de subjuntivo del verbo que consiste en fijar el precio de algo.', FALSE),
+    ('TREN', 'Vehículo formado por vagones que circulan por raíles.', TRUE),
+    ('TRES', 'Número que sigue al dos.', TRUE),
+    ('TRAE', 'Forma verbal que indica llevar algo hacia quien habla.', TRUE),
+    ('TRAS', 'Preposición que indica posterioridad o posición detrás de algo.', TRUE),
+    ('ARE', 'Forma de subjuntivo del verbo que consiste en abrir surcos en la tierra.', FALSE),
+    ('ASE', 'Forma singular de presente de subjuntivo de asar.', FALSE),
+    ('ERA', 'Época o etapa histórica; también forma de pasado verbal.', TRUE),
+    ('ESA', 'Determinante demostrativo femenino que señala algo alejado.', TRUE),
+    ('RES', 'Cabeza de ganado vacuno.', TRUE),
+    ('SEA', 'Forma verbal de subjuntivo usada para expresar deseo o posibilidad.', TRUE),
+    ('SER', 'Verbo copulativo que expresa identidad, naturaleza o existencia.', TRUE),
+    ('TAN', 'Adverbio que expresa intensidad o grado.', TRUE),
+    ('TEA', 'Astilla resinosa que se enciende para alumbrar.', FALSE),
+    ('TEN', 'Mandato dirigido a una persona para que posea o conserve algo.', TRUE)
 ) AS v(word, definition, is_common)
 WHERE s.letters = 'AENRST'
-ON CONFLICT (set_id, word) DO NOTHING;
+ON CONFLICT (set_id, word) DO UPDATE
+SET definition = EXCLUDED.definition,
+    is_common = EXCLUDED.is_common;
 
--- Pistas: una por palabra. Para las más literarias la pista da una definición
--- indirecta en lugar de la letra o la longitud, para no resolverla del todo.
---
--- El texto de una pista NUNCA contiene la palabra: pedir ayuda no puede regalar
--- la solución (spec 004 · R-003). Tampoco vale casi contenerla: «el imperativo de
--- "traer"» ya te dice que la palabra es TRAE, así que la pista tiene que describir
--- lo que significa sin escribirla.
--- La tabla de pistas va primera en el FROM y las palabras se unen por su texto.
--- Si el orden fuera el contrario, cada palabra se emparejaría con la primera
--- pista de la lista y todas acabarían con la misma ayuda.
 INSERT INTO paraulogic_hints (set_id, word_id, hint_text, hint_order)
 SELECT s.id, w.id, v.hint_text, 1
 FROM (VALUES
-    ('ESTAR',  'Cinco letras. Es el verbo de "me siento bien aquí".'),
-    ('TRAE',   'Cinco letras. Es el imperativo de un verbo de movimiento.'),
-    ('SETA',   'Cinco letras. Es un hongo comestible que se puede comer frita.'),
-    ('RESTA',  'Se escribe como "resto", pero con A al principio.'),
-    ('TENAR',  'Es el infinitivo del verbo "tener".'),
-    ('RENTA',  'Empieza por R y acaba en A. Seis letras.'),
-    ('ARTE',   'Empieza por A y acaba en E. Son cuatro letras.'),
-    ('ARTES',  'Es el plural de "arte".'),
-    ('TERNAS', 'Grupos de tres elementos. Seis letras.'),
-    ('ANTER',  'Seis letras. Va delante en el orden o en el espacio.'),
-    ('ERAN',   'Es el pasado del verbo "ser", en plural.'),
-    ('SERA',   'Es el futuro del verbo "ser". Cuatro letras.'),
-    ('SEN',    'Pronombre que sustituye a "esa persona". Tres letras.'),
-    ('NATE',   'Es una persona que nada. También es un apego.'),
-    ('NAT',    'Significa "nació". Tres letras.'),
-    ('RESTAN', 'Es el plural de "restar".'),
-    ('SERAN',  'Es el futuro del verbo "ser", en plural.'),
-    ('SENAR',  'Se dice del terreno donde se siega la hierba.'),
-    ('ATRE',   'Primero A, luego R, y al final una E.'),
-    ('ASTER',  'Es una flor con forma de estrella. Seis letras.'),
-    ('TRANSE', 'Es una finca donde se pastan las ovejas. Seis letras.')
+    ('ENTRAS', 'Forma verbal que indica pasar de fuera hacia dentro, dirigida a una persona.'),
+    ('RENTAS', 'Ingresos periódicos recibidos o pagos periódicos por el uso de un bien.'),
+    ('RESTAN', 'Forma verbal que expresa la cantidad que queda al quitar algo.'),
+    ('SENTAR', 'Verbo que significa colocar a alguien en una silla o tomar asiento.'),
+    ('TENSAR', 'Verbo que significa poner tirante una cuerda o un músculo.'),
+    ('TERNAS', 'Plural de un grupo compuesto por tres elementos.'),
+    ('ANTES', 'Adverbio que indica que algo ocurre con anterioridad.'),
+    ('ARNES', 'Conjunto de correas que sujeta o asegura a una persona o animal.'),
+    ('ARTES', 'Plural de una actividad creativa, técnica o manual.'),
+    ('ASTER', 'Género de plantas vivaces de la familia de las compuestas.'),
+    ('ESTAN', 'Forma verbal que indica dónde se encuentran varias personas o cosas.'),
+    ('ESTAR', 'Verbo que indica una situación, ubicación o estado temporal.'),
+    ('ENTRA', 'Forma verbal que indica pasar de fuera hacia dentro.'),
+    ('NETAS', 'Plural femenino de un adjetivo que indica que no hay descuentos.'),
+    ('RASEN', 'Forma verbal de alisar o nivelar una superficie.'),
+    ('RENTA', 'Ingreso periódico o pago por el uso de un bien.'),
+    ('RESTA', 'Resultado de quitar una cantidad a otra; también, una operación aritmética.'),
+    ('SERAN', 'Forma futura de un verbo copulativo para varias personas.'),
+    ('SERNA', 'Porción de tierra destinada a la siembra.'),
+    ('TENAS', 'Plural de una palabra que nombra útiles de un arte de pesca.'),
+    ('TENSA', 'Adjetivo femenino que describe algo tirante o rígido.'),
+    ('TERNA', 'Grupo de tres personas o cosas que optan a algo.'),
+    ('TRAEN', 'Forma verbal que indica llevar algo hacia aquí, con sujeto plural.'),
+    ('TRAES', 'Forma verbal que indica llevar algo hacia aquí, dirigida a quien escucha.'),
+    ('AREN', 'Subjuntivo plural de arar, referido a varias personas.'),
+    ('ARES', 'Subjuntivo de arar dirigido a quien escucha.'),
+    ('ANTE', 'Preposición que significa «frente a» o «en presencia de».'),
+    ('ARTE', 'Actividad humana que crea obras estéticas o expresivas.'),
+    ('ASEN', 'Subjuntivo plural de asar, referido a varias personas.'),
+    ('ATEN', 'Subjuntivo plural de atar, referido a varias personas.'),
+    ('ATES', 'Subjuntivo de atar dirigido a quien escucha.'),
+    ('ERAN', 'Forma de pasado de un verbo copulativo para varias personas.'),
+    ('ERAS', 'Forma de pasado de un verbo copulativo para una persona.'),
+    ('ESTA', 'Determinante demostrativo femenino que señala algo cercano.'),
+    ('NETA', 'Adjetivo femenino que indica que una cantidad queda limpia de descuentos.'),
+    ('RETA', 'Forma verbal que significa desafiar a alguien.'),
+    ('SEAN', 'Forma plural de subjuntivo de un verbo que expresa identidad o existencia.'),
+    ('SERA', 'Bolsa grande tejida con esparto.'),
+    ('SETA', 'Hongo con sombrero y pie; algunas especies son comestibles.'),
+    ('SEN', 'Arbusto oriental cuyas hojas se emplean en infusión.'),
+    ('TENA', 'Conjunto de útiles empleados en una modalidad de pesca.'),
+    ('SENA', 'Otro nombre de un arbusto cuyas hojas se emplean en infusión.'),
+    ('TASE', 'Forma de subjuntivo del verbo que consiste en fijar el precio de algo.'),
+    ('TREN', 'Vehículo formado por vagones que circulan por raíles.'),
+    ('TRES', 'Número que sigue al dos.'),
+    ('TRAE', 'Forma verbal que indica llevar algo hacia quien habla.'),
+    ('TRAS', 'Preposición que indica posterioridad o posición detrás de algo.'),
+    ('ARE', 'Forma de subjuntivo del verbo que consiste en abrir surcos en la tierra.'),
+    ('ASE', 'Forma singular de presente de subjuntivo de asar.'),
+    ('ERA', 'Época o etapa histórica; también forma de pasado verbal.'),
+    ('ESA', 'Determinante demostrativo femenino que señala algo alejado.'),
+    ('RES', 'Cabeza de ganado vacuno.'),
+    ('SEA', 'Forma verbal de subjuntivo usada para expresar deseo o posibilidad.'),
+    ('SER', 'Verbo copulativo que expresa identidad, naturaleza o existencia.'),
+    ('TAN', 'Adverbio que expresa intensidad o grado.'),
+    ('TEA', 'Astilla resinosa que se enciende para alumbrar.'),
+    ('TEN', 'Mandato dirigido a una persona para que posea o conserve algo.')
 ) AS v(word, hint_text)
 JOIN paraulogic_sets s ON s.letters = 'AENRST'
 JOIN paraulogic_words w ON w.set_id = s.id AND w.word = v.word
-ON CONFLICT (set_id, word_id, hint_order) DO NOTHING;
+ON CONFLICT (set_id, word_id, hint_order) DO UPDATE
+SET hint_text = EXCLUDED.hint_text;
 
--- -----------------------------------------------------------------------------
 -- Wordle — una única palabra objetivo
 -- -----------------------------------------------------------------------------
 -- 5 letras en mayúsculas. La base de datos lo comprueba con un CHECK, así que
@@ -169,7 +242,7 @@ COMMIT;
 -- =============================================================================
 -- VERIFICACIÓN
 -- =============================================================================
--- Debe devolver: 3 juegos, 1 set, 21 palabras, 21 pistas, 1 palabra de Wordle
+-- Debe devolver: 3 juegos, 1 set, 57 palabras, 57 pistas, 1 palabra de Wordle
 -- y 1 acertijo. El test de integridad de la spec 002 falla si alguna cifra no
 -- coincide, así que esta consulta es solo para revisarla a ojo.
 -- =============================================================================

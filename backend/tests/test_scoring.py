@@ -22,6 +22,7 @@ def test_paraulogic_gives_one_point_per_word() -> None:
     assert score_paraulogic(0).points == 0
     assert score_paraulogic(1).points == 1
     assert score_paraulogic(21).points == 21
+    assert score_paraulogic(57).points == 57
 
 
 def test_paraulogic_does_not_penalise_attempts() -> None:

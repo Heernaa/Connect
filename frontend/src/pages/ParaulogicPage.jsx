@@ -33,8 +33,8 @@ const GAME_ID = 'paraulogic'
  *   reencontrar lo que ya encontró por haber cerrado el navegador.
  *
  * El contador de pendientes **baja** con cada palabra. Un contador que dijera
- * «21 palabras» mientras llevas 15 encontradas sería verdad y no serviría de
- * nada: lo que se quiere saber es cuánto queda.
+ * «57 palabras» mientras llevas 15 encontradas sería verdad y no serviría de nada: lo que
+ * importa es cuánto queda.
  */
 export function ParaulogicPage({ signedIn }) {
   const [letters, setLetters] = useState('')
