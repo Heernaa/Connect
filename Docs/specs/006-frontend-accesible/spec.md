@@ -1,6 +1,6 @@
 # Spec 006 — Frontend accesible
 
-**Estado:** pendiente
+**Estado:** implementada
 **Fase:** 5 de 7
 **Constitución:** §1.1 y §4 (accesibilidad), §3.1 (idiomas)
 

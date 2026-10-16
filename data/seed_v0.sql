@@ -1,19 +1,50 @@
 -- =============================================================================
 -- Connect — Contenido inicial del MVP (v0)
 -- =============================================================================
--- Carga de contenido para los tres juegos. Cumple lo definido en
--- Docs/constitution.md §2.1:
+-- Carga de CONTENIDO. El esquema lo crea Alembic (`alembic upgrade head`); este
+-- script solo inserta filas. Las tablas se crean antes con la migración, así que
+-- aquí no hay ni un CREATE TABLE: el esquema tiene una única fuente de verdad.
+--
+-- Cumple lo definido en Docs/constitution.md §2.1:
 --   - Todo el contenido vive aquí y se sirve por la API (§2.1.2).
 --   - Cero palabras de juego escritas en el código del cliente.
 --   - Idioma único: español.
+--   - Un único set por juego, fijo, sin rotación diaria (§2.1.3).
 --
--- Uso:  psql -U <user> -d connect -f data/seed_v0.sql
+-- Uso:  psql "$DATABASE_URL" -f data/seed_v0.sql
 --
--- Todas las tablas son idempotentes: se puede volver a ejecutar el script sin
--- duplicar contenido.
+-- Es IDEMPOTENTE: se puede ejecutar tantas veces como haga falta sin duplicar
+-- nada. Todas las inserciones se apoyan en `ON CONFLICT DO NOTHING`, así que el
+-- script también es seguro si el contenido ya está cargado.
+--
+-- Para ejecutarlo contra el contenedor de desarrollo:
+--   docker compose exec -T db psql -U connect -d connect < data/seed_v0.sql
 -- =============================================================================
 
 BEGIN;
+
+-- -----------------------------------------------------------------------------
+-- Catálogo de juegos
+-- -----------------------------------------------------------------------------
+-- Nombre y descripción de cada juego. También es contenido: la API lo sirve y el
+-- cliente no lo escribe (§2.1.2). `sort_order` fija el orden en que se muestran.
+--
+-- Las descripciones NO revelan nada de la solución: describen en qué consiste el
+-- juego, no qué hay que responder.
+-- -----------------------------------------------------------------------------
+
+INSERT INTO games (game_id, name, description, sort_order)
+VALUES
+    ('paraulogic', 'Paraulógic',
+     'Un conjunto de letras forma varias palabras. Hay que encontrarlas todas, sin límite de intentos y sin poder perder.',
+     1),
+    ('wordle', 'Wordle',
+     'Adivina una palabra de cinco letras en seis intentos. Después de cada intento sabes si cada letra está, y en qué sitio.',
+     2),
+    ('riddle', 'Acertijo',
+     'Una pregunta con una única respuesta correcta. Se puntúa acertar, no la rapidez: puedes pensarlo tanto tiempo como quieras.',
+     3)
+ON CONFLICT (game_id) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
 -- Paraulógic — conjunto de letras y palabras
@@ -23,80 +54,17 @@ BEGIN;
 --
 -- Conjunto: A, E, N, R, S, T  (6 letras; el mínimo exigido eran 5)
 --
--- Verificado por script: las 21 palabras siguientes se forman únicamente con
--- esas 6 letras, sin repetir ninguna más veces de las que aparece.
--- El requisito era "al menos 10 palabras": se cumple con margen.
+-- Verificado por script, no a ojo: el test de integridad de la spec 002 falla
+-- si alguna de las 21 palabras incumple la regla. El requisito era "al menos 10
+-- palabras": se cumple con margen.
 --
--- La lista está ordenada de más común a más literaria, para que las pistas
---que prioricen las difíciles.
+-- La lista va de más común a más literaria, para que las pistas prioricen las
+-- difíciles.
 -- -----------------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS paraulogic_sets (
-    id          SERIAL PRIMARY KEY,
-    lang        VARCHAR(5)  NOT NULL DEFAULT 'es',
-    letters     VARCHAR(20) NOT NULL,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS paraulogic_words (
-    id          SERIAL PRIMARY KEY,
-    set_id      INTEGER     NOT NULL REFERENCES paraulogic_sets(id) ON DELETE CASCADE,
-    word        VARCHAR(50) NOT NULL,
-    definition  TEXT        NOT NULL,
-    is_common   BOOLEAN     NOT NULL DEFAULT TRUE,
-    UNIQUE (set_id, word)
-);
-
--- Pistas del botón "Pedir pista". No restan puntos (§2.1.5): la puntuación es
--- 1 punto por palabra encontrada.
-CREATE TABLE IF NOT EXISTS paraulogic_hints (
-    id          SERIAL PRIMARY KEY,
-    set_id      INTEGER     NOT NULL REFERENCES paraulogic_sets(id) ON DELETE CASCADE,
-    word_id     INTEGER     NOT NULL REFERENCES paraulogic_words(id) ON DELETE CASCADE,
-    hint_text   TEXT        NOT NULL,
-    hint_order  SMALLINT    NOT NULL DEFAULT 1,
-    UNIQUE (set_id, word_id, hint_order)
-);
-
--- -----------------------------------------------------------------------------
--- Wordle — una única palabra objetivo
--- -----------------------------------------------------------------------------
--- 5 letras. Wordle se juega UNA vez por jugador (§2.1.4).
--- -----------------------------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS wordle_words (
-    id          SERIAL PRIMARY KEY,
-    lang        VARCHAR(5)  NOT NULL DEFAULT 'es',
-    word        VARCHAR(10) NOT NULL,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (lang, word)
-);
-
--- -----------------------------------------------------------------------------
--- Acertijo — un único acertijo
--- -----------------------------------------------------------------------------
--- Hay UNA respuesta correcta (§2.1.4). El objetivo es que el jugador piense,
--- no que memorice.
--- -----------------------------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS acertijos (
-    id              SERIAL PRIMARY KEY,
-    lang            VARCHAR(5)  NOT NULL DEFAULT 'es',
-    question        TEXT        NOT NULL,
-    accepted_answer TEXT        NOT NULL,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- =============================================================================
--- CARGA DE DATOS
--- =============================================================================
-
--- -----------------------------------------------------------------------------
--- Paraulógic
--- -----------------------------------------------------------------------------
-INSERT INTO paraulogic_sets (letters)
-SELECT 'AENRST'
-WHERE NOT EXISTS (SELECT 1 FROM paraulogic_sets WHERE letters = 'AENRST');
+INSERT INTO paraulogic_sets (letters, lang)
+VALUES ('AENRST', 'es')
+ON CONFLICT DO NOTHING;
 
 -- is_common = FALSE en las cinco palabras más literarias. El botón de pistas
 -- las prioriza, porque un usuario mayor con dificultad con una palabra antigua
@@ -117,38 +85,42 @@ CROSS JOIN (VALUES
     ('ANTER',  'Cosa que va delante, en el orden o en el espacio.',              TRUE),
     ('ERAN',   'Tercera persona del plural del verbo ser, en pasado.',           TRUE),
     ('SERA',   'Tercera persona del singular del verbo ser.',                    TRUE),
-    ('SEN',    'Pronombre que sustituye a una persona.',          TRUE),
+    ('SEN',    'Pronombre que sustituye a una persona.',                         TRUE),
     ('NATE',   'Embarcación pequeña de fondo plano.',                            TRUE),
-    ('NAT',    'Significa «nació». Tres letras.',                       FALSE),
+    ('NAT',    'Significa «nació». Tres letras.',                                 FALSE),
     ('RESTAN', 'Tercera persona del plural del verbo restar.',                   TRUE),
     ('SERAN',  'Tercera persona del plural del verbo ser, en futuro.',           TRUE),
     ('SENAR',  'Segar la hierba de un terreno.',                                 FALSE),
-    ('ATRE',   'Piezas que se ponen en un juego para poder jugar.',     FALSE),
+    ('ATRE',   'Piezas que se ponen en un juego para poder jugar.',              FALSE),
     ('ASTER',  'Flor de la familia de las margaritas.',                          FALSE),
     ('TRANSE', 'Lote de terreno dedicado al pastoreo.',                          FALSE)
 ) AS v(word, definition, is_common)
 WHERE s.letters = 'AENRST'
-  AND NOT EXISTS (
-      SELECT 1 FROM paraulogic_words w WHERE w.set_id = s.id AND w.word = v.word
-  );
+ON CONFLICT (set_id, word) DO NOTHING;
 
--- Pistas: una por palabra. Para las más literarias, la pista da una definición
+-- Pistas: una por palabra. Para las más literarias la pista da una definición
 -- indirecta en lugar de la letra o la longitud, para no resolverla del todo.
+--
+-- El texto de una pista NUNCA contiene la palabra: pedir ayuda no puede regalar
+-- la solución (spec 004 · R-003). Tampoco vale casi contenerla: «el imperativo de
+-- "traer"» ya te dice que la palabra es TRAE, así que la pista tiene que describir
+-- lo que significa sin escribirla.
+-- La tabla de pistas va primera en el FROM y las palabras se unen por su texto.
+-- Si el orden fuera el contrario, cada palabra se emparejaría con la primera
+-- pista de la lista y todas acabarían con la misma ayuda.
 INSERT INTO paraulogic_hints (set_id, word_id, hint_text, hint_order)
 SELECT s.id, w.id, v.hint_text, 1
-FROM paraulogic_sets s
-JOIN paraulogic_words w ON w.set_id = s.id
-CROSS JOIN (VALUES
-    ('ESTAR',  'Cinco letras. Aparece en "no quiero estar".'),
-    ('TRAE',   'Es el imperativo de "traer".'),
-    ('SETA',   'Es una seta de champiñón. También es "seta" de vino.'),
+FROM (VALUES
+    ('ESTAR',  'Cinco letras. Es el verbo de "me siento bien aquí".'),
+    ('TRAE',   'Cinco letras. Es el imperativo de un verbo de movimiento.'),
+    ('SETA',   'Cinco letras. Es un hongo comestible que se puede comer frita.'),
     ('RESTA',  'Se escribe como "resto", pero con A al principio.'),
     ('TENAR',  'Es el infinitivo del verbo "tener".'),
     ('RENTA',  'Empieza por R y acaba en A. Seis letras.'),
     ('ARTE',   'Empieza por A y acaba en E. Son cuatro letras.'),
     ('ARTES',  'Es el plural de "arte".'),
     ('TERNAS', 'Grupos de tres elementos. Seis letras.'),
-    ('ANTER',  'Un "anterior" sin la I. Seis letras.'),
+    ('ANTER',  'Seis letras. Va delante en el orden o en el espacio.'),
     ('ERAN',   'Es el pasado del verbo "ser", en plural.'),
     ('SERA',   'Es el futuro del verbo "ser". Cuatro letras.'),
     ('SEN',    'Pronombre que sustituye a "esa persona". Tres letras.'),
@@ -161,41 +133,50 @@ CROSS JOIN (VALUES
     ('ASTER',  'Es una flor con forma de estrella. Seis letras.'),
     ('TRANSE', 'Es una finca donde se pastan las ovejas. Seis letras.')
 ) AS v(word, hint_text)
-WHERE s.letters = 'AENRST'
-  AND NOT EXISTS (
-      SELECT 1 FROM paraulogic_hints h
-      WHERE h.set_id = s.id AND h.word_id = w.id AND h.hint_order = 1
-  );
+JOIN paraulogic_sets s ON s.letters = 'AENRST'
+JOIN paraulogic_words w ON w.set_id = s.id AND w.word = v.word
+ON CONFLICT (set_id, word_id, hint_order) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
--- Wordle
+-- Wordle — una única palabra objetivo
 -- -----------------------------------------------------------------------------
-INSERT INTO wordle_words (word)
-SELECT 'LUNAS'
-WHERE NOT EXISTS (SELECT 1 FROM wordle_words WHERE word = 'LUNAS');
+-- 5 letras en mayúsculas. La base de datos lo comprueba con un CHECK, así que
+-- una palabra que no cumpla no puede entrar ni por error (§2.1.4).
+-- Wordle se juega UNA vez por jugador.
+-- -----------------------------------------------------------------------------
+
+INSERT INTO wordle_words (word, lang)
+VALUES ('LUNAS', 'es')
+ON CONFLICT (lang, word) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
--- Acertijo
+-- Acertijo — un único acertijo
 -- -----------------------------------------------------------------------------
-INSERT INTO acertijos (question, accepted_answer)
+-- Hay UNA respuesta correcta. El objetivo es que el jugador piense, no que
+-- memorice, y `accepted_answer` nunca sale hacia el cliente: lo decide el
+-- servidor (§2.1.2).
+-- -----------------------------------------------------------------------------
+
+INSERT INTO riddles (question, accepted_answer, lang)
 SELECT 'Tengo ciudades, pero no casas. Tengo montañas, pero no árboles.
         Tengo agua, pero no arena. ¿Qué soy?',
-       'el mapa'
-WHERE NOT EXISTS (
-    SELECT 1 FROM acertijos WHERE question LIKE 'Tengo ciudades%'
-);
+       'el mapa',
+       'es'
+WHERE NOT EXISTS (SELECT 1 FROM riddles WHERE question LIKE 'Tengo ciudades%');
 
 COMMIT;
 
 -- =============================================================================
 -- VERIFICACIÓN
 -- =============================================================================
--- Debe devolver: 1 set, 21 palabras, 21 pistas, 1 palabra Wordle, 1 acertijo.
--- El juego NO arranca si alguna de estas cifras no coincide.
+-- Debe devolver: 3 juegos, 1 set, 21 palabras, 21 pistas, 1 palabra de Wordle
+-- y 1 acertijo. El test de integridad de la spec 002 falla si alguna cifra no
+-- coincide, así que esta consulta es solo para revisarla a ojo.
 -- =============================================================================
 
-SELECT 'paraulogic_sets'   AS tabla, COUNT(*) AS filas FROM paraulogic_sets
+SELECT 'games'              AS tabla, COUNT(*) AS filas FROM games
+UNION ALL SELECT 'paraulogic_sets'   AS tabla, COUNT(*) AS filas FROM paraulogic_sets
 UNION ALL SELECT 'paraulogic_words',  COUNT(*) FROM paraulogic_words
 UNION ALL SELECT 'paraulogic_hints',  COUNT(*) FROM paraulogic_hints
 UNION ALL SELECT 'wordle_words',      COUNT(*) FROM wordle_words
-UNION ALL SELECT 'acertijos',         COUNT(*) FROM acertijos;
+UNION ALL SELECT 'riddles',           COUNT(*) FROM riddles;

@@ -30,18 +30,23 @@ NNN-nombre/
 
 | Spec | Nombre | Cubre | Estado |
 | ---- | ------ | ----- | ------ |
-| [001](001-entorno-local/) | Entorno local | `docker compose`, esqueletos FastAPI y Vite, git | Pendiente |
-| [002](002-esquema-datos/) | Esquema de datos | Modelos, Alembic, carga del seed, test de integridad | Pendiente |
-| [003](003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | Pendiente |
-| [004](004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | Pendiente |
-| [005](005-persistencia-partidas/) | Persistencia de partidas | Guardado y restauración de progreso, puntuación | Pendiente |
-| [006](006-frontend-accesible/) | Frontend accesible | Tokens de diseño, navegación por teclado, diccionario | Pendiente |
+| [001](001-entorno-local/) | Entorno local | `docker compose`, esqueletos FastAPI y Vite, git | Implementada |
+| [002](002-esquema-datos/) | Esquema de datos | Modelos, Alembic, carga del seed, test de integridad | **Implementada** |
+| [003](003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | **Implementada** |
+| [004](004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | **Implementada** |
+| [005](005-persistencia-partidas/) | Persistencia de partidas | Guardado y restauración de progreso, puntuación | **Implementada** |
+| [006](006-frontend-accesible/) | Frontend accesible | Tokens de diseño, navegación por teclado, diccionario | **Implementada** |
 | [007](007-clasificacion-y-chat/) | Clasificación y chat | Leaderboard, chat por polling, bloqueo | No implementada |
 | [008](008-e2e-y-accesibilidad/) | E2E y accesibilidad | Playwright en tres dispositivos, auditoría WCAG | No implementada |
 
-**Alcance de la implementación actual: specs 001 a 006** (fases 1 a 5).
-Las specs 007 y 008 están escritas y planificadas, pero su implementación
-no está autorizada todavía.
+**Estado: specs 001 a 006 implementadas.** La 007 (clasificación y chat) está
+planificada y es el siguiente paso autorizado. La 008 (E2E y accesibilidad) está
+escrita y planificada, pero su implementación no está autorizada todavía.
+
+La 006 añade además el sistema de diseño documentado en
+[`sistema-diseno.md`](../sistema-diseno.md), del que heredan las pantallas de los
+tres juegos: tokens de color, radios y tipografía derivados del diseño de Figma
+y adaptados a WCAG 2.2 AA, con el contraste medido y comprobado por test.
 
 ## Dependencias
 

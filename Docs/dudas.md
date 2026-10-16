@@ -171,8 +171,10 @@ Riesgos asumidos (§6.3):
 - Sin verificación de correo: alguien puede registrar el nombre de otro.
 
 **Pendiente menor:**
-- Longitud mínima de contraseña (`[MIN_PASSWORD_LEN]`). Propuesta: 8, sin exigir
-  símbolos — las reglas complejas empujan a usar patrones predecibles.
+- Longitud mínima de contraseña (`[MIN_PASSWORD_LEN]`). **✅ RESUELTO 2026-10-16:
+  8 caracteres**, sin exigir símbolos ni mayúsculas. Registrado en §6.2 y §12 de
+  la constitución. Motivo: las reglas complejas empujan a usar patrones
+  predecibles, y el usuario objetivo abandona antes con requisitos exigentes.
 - ¿Los nombres de usuario pueden ser fácilmente adivinables? No se muestran
   públicamente, así que el riesgo es bajo.
 
@@ -249,12 +251,15 @@ consciente — para este usuario, la frustración de perder es peor que una
 clasificación poco informativa.
 
 **Pendiente:**
-- **Wordle** (`[WORDLE_POINTS]`): ¿100 puntos base con bonificación por
-  intentos? Propuesta: base 100, y se resta un 10% por cada intento usado.
+- **Wordle** (`[WORDLE_POINTS]`): **✅ RESUELTO 2026-10-16. Base 100 puntos,
+  restando un 10 % por cada intento usado.** Acierto al intento 1 = 100; al
+  intento 6 = 50.
 - **Anti-trampas** (§6.6): el servidor rechaza puntuaciones imposibles. Con
   Paraulógic es trivial de validar (1 punto por palabra que exista en la
   tabla). Con Wordle hay que validar el intento completo.
-- **Acertijo:** ¿cuántos puntos? No lo has concretado.
+- **Acertijo:** **✅ RESUELTO 2026-10-16. 10 puntos fijos** al acertar, sin
+  penalización por intentos ni por tiempo. Queda por debajo de Wordle en la
+  clasificación porque es el juego más fácil, que es lo coherente con §2.1.5.
 
 ---
 
@@ -284,7 +289,12 @@ Playwright se usa en **tres frentes**: recorridos E2E en los tres dispositivos
 (§7.1), auditoría de accesibilidad con axe-core, y tests de navegación por
 teclado.
 
-> Falta confirmar el stack de unitarias. ¿Te vale `pytest` + Vitest?
+> Faltaba confirmar el stack de unitarias.
+>
+> **✅ RESUELTO 2026-10-16: `pytest` + `httpx` para el backend.** Registrado en
+> §5 y §12 de la constitución. Cubre unitarias e integración contra
+> PostgreSQL real, que es lo que exigen los tests de validación de puntuación y
+> de hash (§5, regla de oro).
 
 ---
 
@@ -382,10 +392,10 @@ moderación), **5** (puntuación), **6** (alias anónimos), **7** (Playwright),
 
 | #  | Pendiente                                        | Propuesta       |
 | -- | ------------------------------------------------- | --------------- |
-| 5  | Fórmula de Wordle (`[WORDLE_POINTS]`) y Acertijo | 100 pts base    |
-| 2  | Longitud mínima de contraseña                    | 8 caracteres    |
+| 5  | Fórmula de Wordle (`[WORDLE_POINTS]`) y Acertijo | ✅ **100 pts base, −10 % por intento; Acertijo 10 pts** |
+| 2  | Longitud mínima de contraseña                    | ✅ **8 caracteres** |
 | 4  | Retención del chat e intervalo de polling        | 90 días / 10 s  |
-| 7  | Confirmar `pytest` + Vitest para unitarias       | Sí              |
+| 7  | Confirmar `pytest` + Vitest para unitarias       | ✅ **pytest + httpx + Vitest** |
 | 10 | RGPD: responsable, consentimiento, retención     | Pendiente       |
 
 > **Se puede empezar ya** por: estructura del proyecto, esquema de PostgreSQL,

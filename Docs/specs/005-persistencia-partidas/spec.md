@@ -1,6 +1,6 @@
 # Spec 005 — Persistencia de partidas y puntuación
 
-**Estado:** pendiente
+**Estado:** implementada
 **Fase:** 4b de 7
 **Constitución:** §2.1.5 (puntuación), §2.1.7 (partidas persistentes)
 
@@ -112,18 +112,18 @@ Al volver a entrar, el jugador recupera:
 
 ## 4. Criterios de aceptación
 
-- [ ] Se puede empezar una partida y recuperar el progreso al volver.
-- [ ] El progreso sobrevive a cerrar el navegador.
-- [ ] En Paraulógic no existe ninguna forma de perder.
-- [ ] En Paraulógic se pueden hacer todos los intentos que se quiera sin
+- [x] Se puede empezar una partida y recuperar el progreso al volver.
+- [x] El progreso sobrevive a cerrar el navegador.
+- [x] En Paraulógic no existe ninguna forma de perder.
+- [x] En Paraulógic se pueden hacer todos los intentos que se quiera sin
       penalización.
-- [ ] Un jugador que ya jugó a Wordle no puede empezar otra partida.
-- [ ] Un segundo intento de Wordle devuelve `409`.
-- [ ] Cada palabra encontrada en Paraulógic suma exactamente 1 punto.
-- [ ] Pedir pistas no altera la puntuación.
-- [ ] El cliente que envía una puntuación inventada es rechazado.
-- [ ] Una palabra inventada no suma puntos.
-- [ ] La puntuación de Wordle baja un 10% por cada intento.
+- [x] Un jugador que ya jugó a Wordle no puede empezar otra partida.
+- [x] Un segundo intento de Wordle devuelve `409`.
+- [x] Cada palabra encontrada en Paraulógic suma exactamente 1 punto.
+- [x] Pedir pistas no altera la puntuación.
+- [x] El cliente que envía una puntuación inventada es rechazado.
+- [x] Una palabra inventada no suma puntos.
+- [x] La puntuación de Wordle baja un 10% por cada intento.
 
 ## 5. Dependencias y referencias
 
