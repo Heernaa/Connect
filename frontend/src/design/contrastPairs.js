@@ -57,6 +57,11 @@ export const TEXT_PAIRS = [
   ['surface', 'danger', 'Etiqueta de un estado de error.'],
   ['surface', 'warning', 'Etiqueta de un estado de aviso.'],
 
+  // Espec 007. Los mensajes del sistema del chat van sobre `brand-soft`, que es
+  // el mismo panel que usan los avisos de las pantallas: si se distinguieran con
+  // un color distinto habría que comprobar dos paletas para lo mismo.
+  ['surface', 'danger-strong', 'Etiqueta del botón de borrar la cuenta.'],
+
   // Los tres acentos de tarjeta. En Figma el relleno era `#00C000`, verde
   // neón, y con texto blanco daba 2.46:1: ilegible. Aquí es el mismo verde
   // profundizado hasta que el blanco encima llega a 5.02:1. El color se
@@ -114,6 +119,17 @@ export const BORDER_PAIRS = [
   ['danger', 'surface', 'El borde rojo de un campo con error.'],
   ['success', 'surface', 'El borde verde de un campo correcto.'],
   ['warning', 'surface', 'El borde de un campo con aviso.'],
+
+  // Espec 007. El borde del mensaje del sistema del chat se comprueba contra el
+  // panel donde va, no contra el blanco de la tarjeta: es `ink-muted` sobre
+  // `brand-soft`, y comprobarlo contra `surface` daría un ratio que no es el de
+  // ningún estado real.
+  ['ink-muted', 'brand-soft', 'Borde del mensaje del sistema en el chat.'],
+
+  // El borde de la tabla de la clasificación y el de cada mensaje. Con
+  // `forced-colors` desaparecen los colores y solo quedan los bordes, así que
+  // tienen que verse por sí solos (R-004).
+  ['border', 'page', 'Separador de fila en la clasificación, sobre la página.'],
 ]
 
 /**

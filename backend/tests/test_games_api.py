@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.models.content import ParaulogicWord, Riddle, WordleWord
 from app.models.enums import GameId, SessionStatus
 from app.models.session import GameSession, ParaulogicFoundWord
+from app.models.user import User
 
 VALID_PASSWORD = "una contraseña fácil"
 
@@ -35,6 +36,22 @@ def signed_in(client: TestClient) -> TestClient:
         "/api/auth/login", json={"username": "carmen", "password": VALID_PASSWORD}
     )
     return client
+
+
+@pytest.fixture
+def player(db_session: Session, signed_in: TestClient) -> User:
+    """El usuario de la sesión de `signed_in`.
+
+    Existe para no tener que volver a «buscar el primero de la tabla», que es lo
+    que rompía estos tests: `select(User.id).limit(1)` devuelve la cuenta más
+    antigua de la base de datos, no la recién creada. Con la base de datos vacía
+    coincidían por casualidad; en cuanto hay una cuenta real, el test montaba la
+    partida de otra persona y fallaba sin motivo aparente.
+
+    Se busca por el **nombre de usuario**, que es lo único que se sabe con
+    certeza: no hay ambigüedad posible entre dos cuentas.
+    """
+    return db_session.scalar(select(User).where(User.username == "carmen"))
 
 
 def _all_solution_strings(db_session: Session) -> list[str]:
@@ -123,9 +140,15 @@ def test_paraulogic_does_not_return_already_found_words(
 
 
 def _user_id(db_session: Session) -> int:
-    from app.models.user import User
+    """El identificador de la cuenta de prueba.
 
-    return db_session.scalar(select(User.id).limit(1))
+    Se mantiene por compatibilidad con los tests que ya lo usaban, pero **no
+    busca «la primera de la tabla»**: hace lo mismo que la fixture `player`,
+    buscando por nombre. Buscar la primera solo coincidía con la cuenta de
+    prueba cuando la base de datos estaba vacía, y en cuanto alguien se
+    registraba, estos tests empezaban a fallar sin explicación.
+    """
+    return db_session.scalar(select(User.id).where(User.username == "carmen"))
 
 
 # --- Pistas (R-003) ----------------------------------------------------------

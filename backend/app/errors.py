@@ -45,6 +45,22 @@ ACCOUNT_LOCKED = (
 #: persona tenga que corregir: o ha iniciado sesión o no lo ha hecho.
 NOT_SIGNED_IN = "No has iniciado sesión."
 
+#: Bloqueo (spec 007 · R-006). Dice **qué ha pasado y qué hacer**, y no quién
+#: bloqueó: esa persona ya es el único dato que se tiene de alguien más, y
+#: confirmar que ha bloqueado a otro sería filtrar cómo usa la plataforma.
+BLOCKED_CANNOT_WRITE = (
+    "Alguien te ha bloqueado, así que no puedes escribir en el chat. Puedes seguir "
+    "jugando y ver la clasificación."
+)
+
+#: Bloquearse a uno mismo no tiene sentido y casi siempre es un error de dedo.
+CANNOT_BLOCK_SELF = "No puedes bloquearte a ti mismo."
+
+#: Un identificador que no corresponde a ninguna cuenta. El mismo texto que
+#: devuelve el 404 de FastAPI, porque quien lo ve no puede saber la diferencia
+#: entre «ese usuario no existe» y «no puedes ver ese usuario».
+USER_NOT_FOUND = "Ese usuario no existe."
+
 #: Errores de validación genéricos.
 FIELDS_REQUIRED = "Faltan datos obligatorios."
 GENERIC_ERROR = "Algo no ha ido bien. Inténtalo de nuevo."

@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react'
 
 import { Layout } from './components/Layout.jsx'
+import { ChatPage } from './pages/ChatPage.jsx'
 import { GamesPage } from './pages/GamesPage.jsx'
 import { HomePage } from './pages/HomePage.jsx'
+import { LeaderboardPage } from './pages/LeaderboardPage.jsx'
 import { LoginPage } from './pages/LoginPage.jsx'
 import { RegisterPage } from './pages/RegisterPage.jsx'
-import { UpcomingPage } from './pages/UpcomingPage.jsx'
 import { useSession } from './hooks/useSession.js'
-import { es } from './i18n/es.js'
 import { useRouter } from './lib/navigation.js'
 
 /**
@@ -76,9 +76,12 @@ export default function App() {
       {route.kind === 'games' && <GamesPage />}
       {route.kind === 'register' && <RegisterPage onRegistered={session.setUser} />}
       {route.kind === 'login' && <LoginPage onSignedIn={session.setUser} />}
-      {route.kind === 'leaderboard' && (
-        <UpcomingPage heading={es.upcoming.leaderboard.heading} intro={es.upcoming.leaderboard.intro} />
-      )}
+
+      {/* La clasificación es pública: se ve sin sesión (R-001, §2.4). */}
+      {route.kind === 'leaderboard' && <LeaderboardPage />}
+
+      {/* El chat no: exige sesión, y lo dice con claridad en vez de dar un 401 (R-009). */}
+      {route.kind === 'chat' && <ChatPage signedIn={Boolean(session.user)} />}
     </Layout>
   )
 }

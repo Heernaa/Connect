@@ -35,7 +35,10 @@ packages = ["app"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["integration: necesita PostgreSQL en marcha"]
+markers = [
+    "integration: necesita PostgreSQL en marcha",
+    "unit: no necesita ni base de datos ni servidor",
+]
 filterwarnings = ["error"]
 
 [tool.ruff]

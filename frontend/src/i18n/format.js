@@ -7,7 +7,7 @@
  * sustituye el hueco por su valor y se conserva la frase entera.
  */
 export function format(template, values) {
-  return Object.entries(values).reduce(
+  return Object.entries(values ?? {}).reduce(
     (text, [key, value]) => text.replaceAll(`{${key}}`, String(value)),
     template,
   )

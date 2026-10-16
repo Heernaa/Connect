@@ -193,20 +193,21 @@ el perfil del usuario: fuente 16px ampliable al 200%, objetivos táctiles de
 
 ---
 
-### 4. 🟡 PARCIAL — El chat
+### 4. ✅ RESUELTA — El chat
 
-**Resuelto:**
-- Transporte: **polling** (`[POLL_INTERVAL]` sin definir, propuesta: 10s).
-- **Sin moderación** en el MVP.
+**Resuelto el 2026-10-16:**
 
-**Pendiente:**
-
-1. **¿El chat es público, por salas, o privado?** Asumido **público y único**
-   mientras no se diga otra cosa. Fácil de cambiar después.
-2. **¿Cuánto tiempo se conservan los mensajes?** (`[CHAT_RETENTION]`). Son
-   datos personales (§6.6). Propuesta: borrar a los 90 días.
-3. **¿Cada cuánto se hace polling?** Propuesta: 10 segundos, con el intervalo
-  se detiene cuando la pestaña no está visible (ahorra recursos y batería).
+1. **Transporte: polling de 10 segundos.** El intervalo se detiene cuando la
+   pestaña no está visible y se reanuda al volver: ahorra recursos y batería.
+2. **Retención: 90 días.** Los mensajes son datos personales (§6.5), así que
+   pasado el plazo se borran. El borrado es **perezoso**, al leer el chat,
+   porque el entorno local no tiene planificador y añadirlo sería la primera
+   infraestructura nueva sin justificar (§6.7).
+3. **Chat público y único**, con alias anónimos. No hay salas ni mensajes
+   privados en el MVP (§2.6).
+4. **Sin moderación**, solo bloqueo (§6.8). Ver la duda 4.b.
+5. **Longitud máxima: 500 caracteres.** Suficiente para escribir con calma y lo
+   bastante corto para acotar el abuso.
 
 ---
 
@@ -218,11 +219,11 @@ El motivo de no tener reporte es razonable: sin nadie a quien REPORTAR, el botó
 solo genera frustración. El bloqueo sí tiene efecto inmediato y es lo que
 realmente protege.
 
-Mitigaciones que sí se implementan (§6.8):
+Mitigaciones que sí se implementan (§6.8, spec 007):
 - [x] Botón de **bloquear** a otro usuario
-- [ ] Un bloqueado no puede escribir al que le bloqueó
-- [ ] **Solo texto plano: sin enlaces ni imágenes** (reduce phishing)
-- [ ] Límite de longitud de mensaje
+- [x] Un bloqueado no puede escribir al que le bloqueó
+- [x] **Solo texto plano: sin enlaces ni imágenes** (reduce phishing)
+- [x] Límite de longitud de mensaje (500 caracteres)
 
 **Riesgo residual aceptado:** el acoso continúa mientras la víctima no bloquee.
 Quien abusa puede ser bloqueado; quien no se defiende puede pedir ayuda fuera de
@@ -336,9 +337,10 @@ Pendiente:
 - ¿Quién es el responsable del tratamiento?
 - ¿Aviso de privacidad y consentimiento explícito? (con mayores, la respuesta
   probablemente sea sí)
-- **Retención del chat**: `[CHAT_RETENTION]`, propuesta 90 días.
+- **Retención del chat**: ✅ **90 días** (resuelto 2026-10-16).
 - **Cuentas inactivas**: ¿se borran a los X meses?
-- Derecho de exportación y borrado: requisito en §6.5, falta implementar.
+- Derecho de **borrado**: ✅ implementado en la spec 007.
+  Derecho de **exportación**: falta, registrado en §11 de la constitución.
 
 > ¿Esto lo lleva alguien del equipo o hay que contratarlo?
 

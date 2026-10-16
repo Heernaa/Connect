@@ -7,7 +7,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_current_user, get_db, require_current_user
 from app.errors import (
     ACCOUNT_LOCKED,
     INVALID_CREDENTIALS,
@@ -20,6 +20,7 @@ from app.errors import (
 from app.models.auth import AuthSession, LoginAttempt
 from app.models.user import User, normalize_username
 from app.schemas.auth import LoginRequest, LogoutResponse, RegisterRequest, UserResponse
+from app.schemas.social import DeleteAccountResponse
 from app.security.passwords import hash_password, verify_password
 from app.security.sessions import (
     SESSION_COOKIE_NAME,
@@ -222,3 +223,45 @@ def me(current_user: User | None = Depends(get_current_user)) -> UserResponse:
         raise ApiError(NOT_SIGNED_IN, status.HTTP_401_UNAUTHORIZED)
 
     return UserResponse(username=current_user.username, alias=current_user.alias)
+
+
+@router.delete(
+    "/me",
+    response_model=DeleteAccountResponse,
+    summary="Borra la cuenta y todo lo que pertenece a esa persona",
+)
+def delete_account(
+    request: Request,
+    response: Response,
+    user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+) -> DeleteAccountResponse:
+    """Borra la cuenta de quien está dentro (R-010, §6.5).
+
+    Se borra **la fila del usuario** y, por cascada, todo lo que apunta a ella:
+    partidas, puntuaciones, sesiones, mensajes y bloqueos. No hay un `DELETE`
+    por tabla: dejar esa lista escrita a mano sería una forma de olvidarse de
+    algo el día que haya una tabla más.
+
+    No hay vuelta atrás y no hay copia: por eso la interfaz avisa antes y no
+    promete que se pueda recuperar. Tampoco hay **exportación**, que es otra
+    funcionalidad y otra pantalla, registrada como deuda técnica en §11.
+
+    La cookie se borra, pero sobre todo se revocan las sesiones: una cookie
+    que queda en el navegador no sirve si el servidor ya no la acepta.
+    """
+    user_id = user.id
+
+    token = unsign_cookie_value(request.cookies.get(SESSION_COOKIE_NAME))
+    if token is not None:
+        db.execute(delete(AuthSession).where(AuthSession.token_hash == hash_token(token)))
+
+    # Los intentos de inicio de sesión no tienen columna de usuario —guardan el
+    # nombre normalizado, no el identificador (§6.3)— y son datos de seguridad que
+    # no identificarían a nadie una vez borrada la cuenta. Se dejan.
+    db.delete(db.get(User, user_id))
+    db.commit()
+
+    clear_session_cookie(response)
+
+    return DeleteAccountResponse(message="Tu cuenta se ha borrado.")

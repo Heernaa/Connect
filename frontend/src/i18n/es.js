@@ -33,6 +33,7 @@ export const es = {
     unknown: 'No lo sabemos',
     backHome: 'Volver a la portada',
     retry: 'Volver a intentarlo',
+    cancel: 'Cancelar',
     fieldRequirement: '({state})',
     mandatory: 'obligatorio',
     optional: 'opcional',
@@ -59,6 +60,7 @@ export const es = {
     register: 'Crear una cuenta',
     login: 'Entrar',
     leaderboard: 'Clasificación',
+    chat: 'Chat',
   },
 
   home: {
@@ -128,6 +130,9 @@ export const es = {
     signedInAs: 'Estás dentro como {alias}.',
     signOut: 'Cerrar sesión',
     signingOut: 'Cerrando sesión…',
+    // El enlace al chat y al borrado van en la cabecera, junto al alias: es
+    // donde ya está la información de «quién eres aquí dentro».
+    accountHeading: 'Tu cuenta',
   },
 
   service: {
@@ -170,11 +175,106 @@ export const es = {
     contentUnexpected:
       'La información del juego no se ha podido leer. Vuelve a cargar la página en unos segundos.',
     contentEmpty: 'Ahora mismo no hay nada que enseñar. Vuelve a intentarlo más tarde.',
+    // Clasificación y chat (spec 007). Los del servidor ya vienen redactados
+    // así; estos son los que nacen en el navegador.
+    chatUnavailable: 'No se ha podido cargar el chat. Comprueba tu conexión y vuelve a intentarlo.',
+    messageRejected: 'No se ha podido enviar el mensaje. Escríbelo otra vez.',
     // Un hash desconocido lleva a la portada en lugar de a un error: el
     // producto no puede tener callejones sin salida (§2.1.6).
   },
 
-  /** Páginas que aún no están hechas (spec 007). */
+  /** CLASIFICACIÓN (spec 007 · R-001, R-002)
+   *
+   *  Se ven el alias, los puntos y el juego. Nunca el nombre de usuario: el
+   *  servidor ni siquiera lo envía (§6.5).
+   */
+  leaderboard: {
+    heading: 'La clasificación',
+    intro: 'Estas son las personas que más puntos tienen. Se puede ver sin entrar en la cuenta.',
+    captionGlobal: 'Puntuación total de cada persona, sumando todos los juegos.',
+    captionGame: 'Puntuación de cada persona en {game}.',
+    loading: 'Cargando la clasificación…',
+    empty: 'Todavía no hay nadie en la clasificación. Juega algo y aparecerá aquí.',
+    points: '{points} puntos',
+    pointsSingular: '1 punto',
+    filterLegend: 'Elige qué clasificación quieres ver',
+    filterAll: 'Todos los juegos',
+    // La palabra «juego» se repite junto al nombre para que el encabezado se
+    // entienda solo, sin tener que mirar la columna de al lado.
+    gameHeading: 'Juego',
+    rankHeading: 'Puesto',
+    aliasHeading: 'Alias',
+    pointsHeading: 'Puntos',
+  },
+
+  /** CHAT (spec 007 · R-003 a R-007)
+   *
+   *  Solo texto plano, sin enlaces ni imágenes. Los avisos del sistema se
+   *  distinguen de lo que escriben las personas, para que nadie pueda hacerse
+   *  pasar por el sistema (§6.4).
+   */
+  chat: {
+    heading: 'El chat',
+    intro: 'Aquí habla la gente. Se puede leer y escribir con tu alias, nunca con tu nombre de usuario.',
+    messagesHeading: 'Mensajes',
+    // El aviso va en singular y en plural porque `aria-live` lee las dos
+    // formas: una para un mensaje y otra para varios.
+    newMessage: 'Hay un mensaje nuevo.',
+    newMessages: 'Hay {count} mensajes nuevos.',
+    showNew: 'Ver los mensajes nuevos',
+    writeLabel: 'Escribe tu mensaje',
+    writeHint: 'Máximo {count} letras. No se pueden poner enlaces ni fotos.',
+    writePlaceholder: 'Escribe aquí…',
+    send: 'Enviar',
+    sending: 'Enviando…',
+    empty: 'Todavía no hay ningún mensaje. Puedes ser la primera persona en escribir.',
+    requiresSession:
+      'El chat es para quienes tienen cuenta. Entra con tu nombre de usuario y lo verás.',
+    counter: '{written} de {max} letras',
+    counterNearLimit: 'Quedan {left} letras.',
+    counterOverLimit: 'Has escrito {extra} letras de más. Borra algo antes de enviar.',
+    timeLabel: 'Mensaje de las {time}',
+    systemLabel: 'Aviso del sistema',
+    // El mensaje de quien mira, no el del sistema. Se usa si la conversación
+    // aparece de golpe y no queremos que parezca un aviso.
+    mineLabel: 'Tú',
+  },
+
+  /** BLOQUEO (spec 007 · R-006)
+   *
+   *  Sin confirmación y sin «¿seguro?». Se pide en el requisito: pedirla justo
+   *  cuando alguien te está molestando es lo contrario de útil.
+   */
+  block: {
+    action: 'Bloquear',
+    done: 'Bloqueado',
+    undo: 'Desbloquear',
+    // El `aria-label` **sí** lleva el alias, y el texto visible no. El botón se
+    // lee suelto en una lista de mensajes iguales, y sin el alias no se sabe a
+    // quién se está bloqueando (WCAG 2.5.3). Un nombre accesible que no contenga
+    // el texto visible rompe el reconocimiento por voz.
+    actionLabel: 'Bloquear a {alias}',
+    undoLabel: 'Desbloquear a {alias}',
+    confirmHint: 'Bloquear es inmediato: no te llegará ningún mensaje más de esta persona.',
+    undoHint: 'Si le desbloqueas, volverá a poder escribirte.',
+    blockedNow: 'Has bloqueado a {alias}. No te llegará ningún mensaje más.',
+    unblockedNow: 'Has desbloqueado a {alias}. Ya puede escribirte otra vez.',
+  },
+
+  /** BORRADO DE LA CUENTA (spec 007 · R-010, §6.5) */
+  deleteAccount: {
+    action: 'Borrar mi cuenta',
+    warningTitle: 'Vas a borrar tu cuenta',
+    warning: 'Se borrará todo lo tuyo: tus partidas, tus puntos y tus mensajes. No hay vuelta atrás y no podrás recuperarlos.',
+    // Se dice que no hay copia porque es verdad, y no decirlo dejaría pensar lo
+    // contrario (§4.2: ninguna etiqueta engañosa).
+    noBackup: 'No se guarda ninguna copia de tus datos.',
+    confirm: 'Sí, borrar mi cuenta',
+    confirming: 'Borrando…',
+    done: 'Tu cuenta se ha borrado.',
+  },
+
+  /** Páginas que aún no están hechas. */
   upcoming: {
     leaderboard: {
       heading: 'La clasificación',

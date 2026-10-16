@@ -177,6 +177,10 @@ def test_no_extra_tables_beyond_the_declared_ones(seeded_db_session) -> None:
         "scores",
         "auth_sessions",
         "login_attempts",
+        # spec 007: el chat y los bloqueos. Solo estas dos, y está comprobado en
+        # `test_no_personal_data.py` que no haya una tercera de moderación.
+        "chat_messages",
+        "user_blocks",
     }
     rows = seeded_db_session.execute(
         text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")

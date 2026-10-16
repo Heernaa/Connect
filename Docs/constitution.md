@@ -8,7 +8,7 @@
 > la constitución gana. Si el conflicto es inevitable, hay que pedir
 > aprobación explícita y documentar la excepción en el registro de decisiones.
 
-**Estado:** v0.10 — sistema de tokens de la spec 006 documentado
+**Estado:** v0.11 — retención y polling del chat decididos (spec 007)
 **Última actualización:** 2026-10-16
 
 ---
@@ -36,8 +36,9 @@
 | Identidad visible            | Anónima. Cada usuario tiene un alias autogenerado (§6.5)  |
 | Lenguaje visual              | Tokens derivados de Figma, adaptados a WCAG 2.2 AA            |
 | Accesibilidad                | WCAG 2.2 nivel AA (§4)                                   |
-| Transporte del chat          | Polling (§2.3)                                           |
+| Transporte del chat          | Polling, cada 10 s (§2.3)                                |
 | Moderación del chat          | No incluida. Bloqueo sí, reporte no (§6.8)                |
+| Retención de mensajes        | 90 días (§2.3, §6.5)                                     |
 | Autenticación                | Nombre de usuario + contraseña. Sin correo (§2.2)        |
 | Almacenamiento de contraseñas | Hash, nunca cifrado (§6.2)                               |
 | Entorno                      | Local. Sin despliegue (§7.0)                              |
@@ -47,8 +48,9 @@
 | Puntuación Acertijo          | 10 puntos fijos al acertar (§2.1.5)                       |
 | Longitud mínima de contraseña| 8 caracteres, sin exigir símbolos (§6.2)                  |
 | Framework de pruebas         | `pytest` + `httpx` (§5)                                   |
-| Retención del chat            | A definir. Sin moderación, el periodo se revisa (§2.3)   |
+| Intervalo de polling del chat | 10 segundos (§2.3)                                      |
 | Contenido del MVP             | 1 Wordle, 1 acertijo, 1 set de Paraulógic (21 palabras) §2.1.8 |
+| Longitud máxima de mensaje   | 500 caracteres (§6.8)                                    |
 
 ### 0.2 Pendiente de decisión
 
@@ -57,16 +59,16 @@ preguntan.** Las dudas concretas están recogidas en [`dudas.md`](./dudas.md).
 
 | Placeholder         | Qué falta decidir                            | Bloquea |
 | ------------------- | -------------------------------------------- | ------- |
-| `[CHAT_RETENTION]`  | Cuánto tiempo se conservan los mensajes       | §2.3    |
-| `[POLL_INTERVAL]`   | Cada cuántos segundos se consulta el chat     | §2.3    |
-| `[CONTENT_SIZE]`    | Cuántas palabras y acertijos hay en el MVP    | §2.1.3  |
+| `[CONTENT_SIZE]`    | Cuántas palabras y acertijos hay en el MVP    | §2.1.8  |
 
 > **Regla:** un placeholder sin resolver **bloquea** el trabajo que dependa de él.
 
 > **Nota.** Los placeholders `[TEST_UNIT]`, `[MIN_PASSWORD_LEN]`,
-> `[WORDLE_POINTS]` y `[ACERTIJO_POINTS]` se resolvieron el 2026-10-16 y
-> constan en §0.1. `ACERTIJO_POINTS` no figuraba en la tabla: se añadió al
-> detectar que la tarea 5.13 de la spec 005 dependía de él.
+> `[WORDLE_POINTS]`, `[ACERTIJO_POINTS]`, `[CHAT_RETENTION]` y
+> `[POLL_INTERVAL]` se resolvieron el 2026-10-16 y constan en §0.1.
+> `ACERTIJO_POINTS` no figuraba en la tabla: se añadió al detectar que la tarea
+> 5.13 de la spec 005 dependía de él. `CHAT_RETENTION` y `POLL_INTERVAL`
+> bloqueaban la spec 007 entera, y se resolvieron al empezar ella.
 >
 > `[CONTENT_SIZE]` sigue pendiente aunque §2.1.8 ya concrete el contenido del
 > MVP. No se marca como resuelto sin una decisión explícita del equipo.
@@ -404,9 +406,9 @@ pista las trate con más cuidado (§1.1).
 - Ver la puntuación del resto de jugadores: clasificación global y por juego.
 - Chat entre usuarios, con **alias anónimos**.
 - Transporte por **polling**: el cliente consulta periódicamente y recibe lo
-  nuevo. Intervalo `[POLL_INTERVAL]` (§0.2).
+  nuevo. Intervalo de **10 segundos** (§0.1).
 - **Sin moderación en el MVP** (§6.8). Ver el riesgo asumido.
-- Retención de mensajes: `[CHAT_RETENTION]`.
+- Retención de mensajes: **90 días** (§0.1). Pasado el plazo se borran.
 
 ### 2.4 Clasificación (leaderboard)
 
@@ -638,8 +640,10 @@ Nuestro usuario es vulnerable a estafas por su perfil. Por tanto:
       autogenerado (§2.2).
 - [ ] El alias no es elegido por el usuario y no permite deducir datos personales.
 - [ ] El chat se considera dato personal. Política de retención definida y
-      aplicada: `[CHAT_RETENTION]`.
-- [ ] Derecho a exportar y borrar los datos del usuario, implementado de verdad.
+      aplicada: **90 días** (§0.1).
+- [ ] Derecho a **borrar** los datos del usuario, implementado de verdad
+      (spec 007 · R-008).
+- [ ] Derecho a **exportar** los datos del usuario: pendiente, se registra en §11.
 
 ### 6.6 Anti-trampas
 
@@ -680,7 +684,7 @@ Riesgos asumidos:
       que un clic de más.
 - [ ] El chat **no admite enlaces ni imágenes**: solo texto plano. Reduce
     sustancialmente el phishing y evita contenido oculto.
-- [ ] Límite de longitud de mensaje para acotar el abuso.
+- [ ] Límite de longitud de mensaje para acotar el abuso: **500 caracteres**.
 - [ ] Los mensajes del sistema se distinguen visualmente de los de usuarios
       (§6.4), para que no haya suplantación del sistema.
 
@@ -828,6 +832,7 @@ Esta constitución cambia explícitamente, nunca por inercia.
 | v0.8    | 2026-10-15 | Método **SDD spec-anchored** (§0.3, nueva): la spec es la fuente de verdad, requisitos numerados, una rama por spec. Frontend en **JavaScript** (§3.2), con el tipado fuerte concentrado en la frontera del servidor. | —     |
 | v0.9    | 2026-10-16 | Placeholders de las specs 001-005 resueltos (§0.1): `pytest`+`httpx` (§5), contraseña mínima de 8 caracteres (§6.2), Wordle base 100 con −10 % por intento y Acertijo 10 puntos fijos (§2.1.5). Se añade `[ACERTIJO_POINTS]`, que faltaba en §0.2 y bloqueaba la tarea 5.13 de la spec 005. Ningún principio se relaja. | —     |
 | v0.10   | 2026-10-16 | Lenguaje visual del frontend: sistema de tokens derivado del diseño de Figma y adaptado a WCAG 2.2 AA, documentado en [`sistema-diseno.md`](./sistema-diseno.md). El color de Figma se conserva; los valores que fallaban el contraste se sustituyen por otros medidos. Ningún principio se relaja. | — |
+| v0.11   | 2026-10-16 | Chat: retención de **90 días** y polling de **10 s** (`[CHAT_RETENTION]` y `[POLL_INTERVAL]` resueltos, bloqueaban la spec 007). Límite de mensaje de **500 caracteres**. Derecho de borrado de datos implementado; el de exportación queda como deuda (§11, fila 7). Se registra además que falta la spec de la interfaz de los tres juegos (§11, fila 8). | — |
 
 ---
 
@@ -843,6 +848,13 @@ Todo incumplimiento consciente de la constitución se registra aquí.
 | 4   | Sin recuperación de contraseña (§6.3)             | Decisión de producto                                | Añadir correo cuando el proyecto salga de local               | 🟡 Media |
 | 5   | Sin verificación de correo (§6.3)                 | Decisión de producto                                | Revisar si se despliega                                        | 🟡 Media |
 | 6   | Sin HTTPS (§7.0)                                 | Solo local                                          | Obligatorio si se despliega. Nunca exponer fuera de localhost | 🟢 Baja |
+| 7   | Sin exportación de datos del usuario (§6.5)       | La spec 007 implementa el borrado, no la exportación | Endpoint de exportación y su pantalla, en una spec posterior | 🟡 Media |
+| 8   | Interfaz de los tres juegos sin spec (§2.1.4)     | La 006 la deja fuera y no hay spec que la cubra      | Spec de Paraulógic, Wordle y Acertijo antes de la 008 | 🔴 Alta |
+
+> **La fila 8 bloquea la spec 008.** No es una deuda «para cuando haya tiempo»:
+> mientras no exista esa spec, los requisitos de la 008 que piden recorridos y
+> auditorías de las pantallas de los juegos no tienen nada que medir, y la spec
+> no se puede cerrar por más que el resto de la suite esté en verde.
 
 > Una deuda sin plan de resolución no es deuda: es una excepción silenciosa.
 
@@ -866,6 +878,10 @@ Cada placeholder resuelto se anotará aquí con su justificación.
 | 2026-10-15 | Paraulógic: **1 punto por palabra**, intentos infinitos, no se puede perder | Sin frustración para el usuario    |
 | 2026-10-15 | **Partida pausable y persistente** en todos los juegos       | El jugador puede volver cuando quiera |
 | 2026-10-15 | Botón de **bloqueo** en el chat, **sin reporte**             | Sin moderadores, el reporte no sirve; el bloqueo sí |
+| 2026-10-16 | Retención del chat: **90 días**                              | Propuesta de `dudas.md` §4; dato personal, se borra (§6.5) |
+| 2026-10-16 | Polling del chat: **10 segundos**                            | Propuesta de `dudas.md` §4; se pausa con la pestaña oculta |
+| 2026-10-16 | Mensaje de chat: **500 caracteres**, solo texto plano        | Acota el abuso sin estorbar (§6.8) |
+| 2026-10-16 | Retención con **borrado perezoso**, sin planificador          | El entorno local no tiene cron; no se añade infraestructura (§6.7) |
 | 2026-10-15 | Auth: **usuario + contraseña, sin correo**                   | Simple, sin servicios externos       |
 | 2026-10-15 | Contraseñas **hasheadas**, nunca cifradas                   | Requisito técnico innegociable (§6.2) |
 | 2026-10-15 | **Sin despliegue: local**                                   | Fase actual del proyecto (§7.0)      |

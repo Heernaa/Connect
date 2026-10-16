@@ -36,12 +36,23 @@ NNN-nombre/
 | [004](004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | **Implementada** |
 | [005](005-persistencia-partidas/) | Persistencia de partidas | Guardado y restauración de progreso, puntuación | **Implementada** |
 | [006](006-frontend-accesible/) | Frontend accesible | Tokens de diseño, navegación por teclado, diccionario | **Implementada** |
-| [007](007-clasificacion-y-chat/) | Clasificación y chat | Leaderboard, chat por polling, bloqueo | No implementada |
-| [008](008-e2e-y-accesibilidad/) | E2E y accesibilidad | Playwright en tres dispositivos, auditoría WCAG | No implementada |
+| [007](007-clasificacion-y-chat/) | Clasificación y chat | Leaderboard, chat por polling, bloqueo | **Implementada** |
+| [008](008-e2e-y-accesibilidad/) | E2E y accesibilidad | Playwright en tres dispositivos, auditoría WCAG | Bloqueada (§5) |
 
-**Estado: specs 001 a 006 implementadas.** La 007 (clasificación y chat) está
-planificada y es el siguiente paso autorizado. La 008 (E2E y accesibilidad) está
-escrita y planificada, pero su implementación no está autorizada todavía.
+**Estado: specs 001 a 007 implementadas.** La comunidad —clasificación, chat,
+bloqueo y borrado de cuenta— está construida.
+
+La **008 está bloqueada**: sus requisitos piden recorridos y auditorías de las
+pantallas de los tres juegos, y **no existe spec de esas pantallas** (la 006 las
+deja fuera y nada las cubre). Está anotado en §11, fila 8, de la constitución.
+
+### Qué hereda la siguiente spec
+
+- **Chat:** 90 días de retención, polling de 10 s, 500 caracteres por mensaje,
+  solo texto plano.
+- **Bloqueo:** un paso, sin confirmación, en las dos direcciones.
+- **Borrado de cuenta:** `DELETE /api/auth/me`. La **exportación** no existe
+  (§11, fila 7).
 
 La 006 añade además el sistema de diseño documentado en
 [`sistema-diseno.md`](../sistema-diseno.md), del que heredan las pantallas de los

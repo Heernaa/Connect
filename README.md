@@ -90,8 +90,12 @@ Pensado desde el principio para un usuario vulnerable a estafas:
 - **Anti-trampas**: el servidor valida y calcula cualquier puntuación. El cliente
   propone, el servidor decide.
 - Chat solo de **texto plano, sin enlaces ni imágenes**, para reducir phishing.
+  El rechazo ocurre en el **servidor**: si solo se ocultara en la interfaz,
+  quien llame a la API directamente podría seguir escribiéndolos.
 - El chat del MVP **no tiene moderación**: hay botón de bloqueo, que sí tiene
   efecto inmediato. Es un riesgo asumido y documentado, no un olvido.
+- Los mensajes se borran a los **90 días**, y el alias no revela nada de la
+  persona que hay detrás.
 
 El riesgo asumido está escrito en la constitución (§6.8) y registrado como deuda
 técnica, no escondido.
@@ -126,9 +130,9 @@ cualquier otra instrucción.
 | [003](Docs/specs/003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | **Implementada** |
 | [004](Docs/specs/004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | **Implementada** |
 | [005](Docs/specs/005-persistencia-partidas/) | Persistencia de partidas | Guardado y restauración de progreso, puntuación | **Implementada** |
-| [006](Docs/specs/006-frontend-accesible/) | Frontend accesible | Tokens de diseño, navegación por teclado, diccionario | Pendiente |
-| [007](Docs/specs/007-clasificacion-y-chat/) | Clasificación y chat | Leaderboard, chat por polling, bloqueo | No autorizada |
-| [008](Docs/specs/008-e2e-y-accesibilidad/) | E2E y accesibilidad | Playwright en tres dispositivos, auditoría WCAG | No autorizada |
+| [006](Docs/specs/006-frontend-accesible/) | Frontend accesible | Tokens de diseño, navegación por teclado, diccionario | **Implementada** |
+| [007](Docs/specs/007-clasificacion-y-chat/) | Clasificación y chat | Leaderboard, chat por polling, bloqueo | **Implementada** |
+| [008](Docs/specs/008-e2e-y-accesibilidad/) | E2E y accesibilidad | Playwright en tres dispositivos, auditoría WCAG | Bloqueada |
 
 ---
 
@@ -154,10 +158,13 @@ justificarlo (`spec 001 · R-007`).
 
 ## 🚀 Puesta en marcha
 
-> **Estado actual: specs 001 a 005 implementadas.** El proyecto arranca con un
-> solo comando y tiene la API completa de los tres juegos: cuentas, sesiones,
-> contenido y puntuación validada en el servidor. Falta la interfaz de juego, que
-> es la spec 006.
+> **Estado actual: specs 001 a 007 implementadas.** El proyecto arranca con un
+> solo comando y tiene la API completa de los tres juegos —cuentas, sesiones,
+> contenido y puntuación validada en el servidor—, la interfaz base accesible y
+> la parte social: clasificación, chat, bloqueo y borrado de cuenta.
+>
+> Falta la **interfaz de los tres juegos**, que aún no tiene spec, y por eso la
+> spec 008 (E2E completa) está bloqueada.
 
 **Requisitos:** Docker y Docker Compose. **Ninguna credencial externa es
 necesaria** (§7.0). El proyecto vive en local y no se despliega.
@@ -232,7 +239,7 @@ docker compose down -v   # Para y borra también el volumen de PostgreSQL
 
 ## ⚠️ Riesgos asumidos
 
-Un MVP con cuatro decisiones de riesgo asumido, todas registradas como deuda
+Un MVP con seis decisiones de riesgo asumido, todas registradas como deuda
 técnica en [`constitution.md` §11](Docs/constitution.md#11-deuda-técnica-conocida):
 
 | Decisión | Riesgo | Plan |
@@ -241,6 +248,8 @@ técnica en [`constitution.md` §11](Docs/constitution.md#11-deuda-técnica-cono
 | Contenido de juegos público y fijo | Se puede descubrir la solución | Rotación por fecha en v2 |
 | Puntuación de Paraulógic trivial | Mide quién juega más, no habilidad | Se revisa con más contenido o niveles |
 | Sin recuperación de contraseña | Olvidar la contraseña es perder la cuenta | Añadir correo cuando el proyecto salga de local |
+| Sin exportación de datos | Se puede borrar, pero no llevarse una copia | Endpoint de exportación en una spec posterior |
+| Interfaz de los juegos sin spec | La 008 (E2E) no se puede cerrar | Spec de Paraulógic, Wordle y Acertijo |
 
 > Una deuda sin plan de resolución no es deuda: es una excepción silenciosa.
 

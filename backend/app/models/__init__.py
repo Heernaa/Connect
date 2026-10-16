@@ -7,6 +7,7 @@ no aparece en las migraciones.
 
 from app.models.auth import AuthSession, LoginAttempt
 from app.models.base import Base
+from app.models.chat import MAX_MESSAGE_LENGTH, ChatMessage, MessageKind, UserBlock
 from app.models.content import (
     Game,
     ParaulogicHint,
@@ -25,11 +26,14 @@ from app.models.session import (
 from app.models.user import User, normalize_username
 
 __all__ = [
+    "MAX_MESSAGE_LENGTH",
     "AuthSession",
     "Base",
+    "ChatMessage",
     "Game",
     "GameSession",
     "LoginAttempt",
+    "MessageKind",
     "ParaulogicFoundWord",
     "ParaulogicHint",
     "ParaulogicSet",
@@ -38,6 +42,7 @@ __all__ = [
     "RiddleAnswer",
     "Score",
     "User",
+    "UserBlock",
     "WordleAttempt",
     "WordleWord",
     "normalize_username",

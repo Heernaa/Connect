@@ -42,6 +42,11 @@ export const ROUTES = {
     title: `${es.nav.leaderboard} — ${es.app.name}`,
     kind: 'leaderboard',
   },
+  chat: {
+    path: 'chat',
+    title: `${es.nav.chat} — ${es.app.name}`,
+    kind: 'chat',
+  },
 }
 
 /** Ruta que se abre cuando no hay hash, o cuando el hash no existe. */

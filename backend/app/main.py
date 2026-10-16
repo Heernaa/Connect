@@ -11,7 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import get_settings
 from app.errors import ApiError, api_error_handler, http_exception_handler, validation_error_handler
-from app.routers import auth, games, health, sessions
+from app.routers import auth, chat, games, health, leaderboard, sessions
 
 settings = get_settings()
 
@@ -46,3 +46,5 @@ app.include_router(health.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(games.router, prefix="/api")
 app.include_router(sessions.router, prefix="/api")
+app.include_router(leaderboard.router, prefix="/api")
+app.include_router(chat.router, prefix="/api")

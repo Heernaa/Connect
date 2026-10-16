@@ -15,22 +15,31 @@ import { routeHref } from '../routes.js'
  *   200% son 48px reales, y es entonces cuando dos enlaces contiguos se
  *   confunden (R-002).
  *
+ * **El chat solo aparece si hay sesión** (R-009). Es la única diferencia entre
+ * esta lista y una lista fija: el chat no es público, y un enlace que lleva a
+ * «tienes que entrar» en el menú es un callejón sin salida (§2.1.6). Quien no
+ * tiene cuenta ve la clasificación, que sí es pública (§2.4).
+ *
  * Va **dentro** de la banda cian, no debajo: en Figma la cabecera y el menú son
  * la misma cosa, y una sola barra se lee mejor que dos que compiten.
  */
-const LINKS = [
+const ALWAYS_VISIBLE = [
   { path: '', key: 'home' },
   { path: 'games', key: 'games' },
   { path: 'leaderboard', key: 'leaderboard' },
 ]
 
-export function SiteNav({ currentKind }) {
+const ONLY_SIGNED_IN = [{ path: 'chat', key: 'chat' }]
+
+export function SiteNav({ currentKind, signedIn }) {
+  const links = signedIn ? [...ALWAYS_VISIBLE, ...ONLY_SIGNED_IN] : ALWAYS_VISIBLE
+
   return (
     <nav aria-label={es.nav.mainNavigation}>
       {/* El `ul` existe por estructura de lista: una barra de enlaces es una
           lista, y quien usa un lector de pantalla puede contarla y saltarla. */}
       <ul className="flex flex-wrap items-center gap-3 sm:gap-6">
-        {LINKS.map((link) => (
+        {links.map((link) => (
           <li key={link.key}>
             <a
               className="ui-navlink"

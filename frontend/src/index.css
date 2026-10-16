@@ -74,6 +74,10 @@
   --color-brand-strong: #00505a; /* hover: 9.15:1 con texto blanco */
   --color-success: #166534; /* 7.13:1 con texto blanco */
   --color-danger: #b3261e; /* 6.54:1 con texto blanco */
+  /* Hover del botón de peligro: más oscuro, nunca más claro. Un rojo aclarado
+     sobre blanco baja del 4.5:1 justo cuando alguien está a punto de pulsarlo,
+     que es cuando peor puede sentirse. */
+  --color-danger-strong: #8c1d17; /* 8.72:1 con texto blanco */
   --color-warning: #8a5300; /* 6.33:1 con texto blanco, 5.81:1 sobre su fondo suave */
 
   /* Acentos de tarjeta: uno por juego.
@@ -544,5 +548,183 @@
       filter: blur(0);
       transform: translateY(0);
     }
+  }
+
+  /* --- Clasificación (spec 007 · R-001, R-002) ------------------------------
+     Tres piezas, todas con una razón. */
+
+  /* El contenedor que permite desplazar la tabla **dentro de su caja**. Sin
+     él, una tabla más ancha que la pantalla provoca scroll horizontal en el
+     documento entero, que es justo lo que R-010 prohíbe a 360px. Con él, quien
+     usa dos dedos o la barra de desplazamiento mueve solo la tabla y la página
+     se queda quieta.
+     `min-width: 0` es lo que permite que el contenedor se encoja dentro de su
+     padre en un `flex`: sin él, un hijo flexible no baja del ancho de su
+     contenido (el mismo motivo que en `.ui-status__text`). */
+  .ui-table-scroll {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  .ui-table {
+    inline-size: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-lg);
+  }
+
+  /* El `<caption>` es el título de la tabla y es lo que anuncia el lector de
+     pantalla antes de leer nada. Visualmente va arriba y a la izquierda, que es
+     donde se espera un título de tabla, no centrado como en libros. */
+  .ui-table caption {
+    margin-bottom: 0.75rem;
+    text-align: start;
+    color: var(--color-ink-muted);
+    font-size: var(--text-base);
+  }
+
+  .ui-table th,
+  .ui-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border-soft);
+    text-align: start;
+    vertical-align: baseline;
+  }
+
+  /* El encabezado en negrita sobre fondo claro, y los números alineados a la
+     derecha: una columna de cifras se compara por la última, que es la que
+     mira el ojo al bajar por la columna. */
+  .ui-table thead th {
+    border-bottom: 2px solid var(--color-border);
+    font-weight: 700;
+  }
+
+  .ui-table tbody th {
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ui-table td[data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* El «radio» del filtro. El control nativo es pequeño para el dedo, así que
+     se agranda la casilla que se puede pulsar sin tocar el cuadrado visible:
+     un `label` que envuelve al `input` hace pulsable toda la fila, y por eso en
+     el JSX el `input` va dentro del `label`. */
+  .ui-choice {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: var(--spacing-target);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-control);
+    font-size: var(--text-lg);
+    cursor: pointer;
+  }
+
+  .ui-choice:hover {
+    background-color: rgb(17 24 28 / 0.04);
+  }
+
+  .ui-choice input {
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    accent-color: var(--color-brand);
+    flex-shrink: 0;
+  }
+
+  /* --- Chat (spec 007 · R-003, R-004, R-007) ------------------------------- */
+
+  /* El área de la conversación. `min-height` para que se vea una lista aunque
+     esté vacía, y no un hueco en blanco del tamaño del texto que falta.
+
+     `overflow-y: auto` y una altura máxima: en una conversación larga, sin
+     esto, los mensajes que llegan Follow irían(shape) alargando la página hasta
+     que el botón de escribir quedara fuera de la pantalla. Con el área
+     desplazable, escribir está siempre a la vista (R-005). */
+  .ui-chat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 8rem;
+    max-block-size: 26rem;
+    overflow-y: auto;
+    /* `min-width: 0` por el mismo motivo que en `.ui-status__text`: sin esto, un
+       mensaje largo sin espacios no se parte y sale scroll horizontal en
+       360px (R-010). */
+    min-width: 0;
+    /* Reserva el ancho de la barra de desplazamiento: sin esto, cada mensaje
+       nuevo desplaza el texto unos píxeles a la izquierda y la conversación
+       parece temblar mientras se lee. */
+    scrollbar-gutter: stable;
+  }
+
+  .ui-chat-message {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface);
+    /* `overflow-wrap: anywhere` parte incluso una palabra más larga que la
+       pantalla, como un enlace largo o una palabra sin espacios. `break-word`
+       no la parte si no hay dónde: es la diferencia entre que no haya scroll
+       horizontal y que lo haya (R-010). */
+    overflow-wrap: anywhere;
+  }
+
+  /* Los mensajes del sistema se distinguen por **forma y por texto**, no solo por
+     color (§6.4, R-004): fondo distinto, borde de puntos y la etiqueta «Aviso
+     del sistema». Quitar el color con `forced-colors` deja la etiqueta y el
+     borde, que es lo que hace que no puedan suplantarse. */
+  .ui-chat-message[data-system='true'] {
+    background-color: var(--color-brand-soft);
+    border-style: dashed;
+    border-color: var(--color-ink-muted);
+  }
+
+  /* El texto del mensaje: se pinta como texto, nunca se interpreta (§4.1, R-004).
+     React escapa por su cuenta, así que un `<b>` escrito en el chat sale como
+     `<b>`. Este `white-space` solo deja que los saltos de línea que alguien ha
+     escrito se vean. */
+  .ui-chat-message p {
+    overflow-wrap: anywhere;
+  }
+
+  /* --- Botón tranquilo y botón de peligro ----------------------------------
+     El de borrar la cuenta está en la cabecera, junto a «Cerrar sesión». No es
+     un sitio para un botón rojo: un aviso de destructivo junto a algo que se
+     pulsa a menudo es la forma más rápida de que alguien borre su cuenta sin
+     querer. Va discreto y **no hace nada hasta que se abre el aviso**, que es
+     donde está el botón de verdad. */
+  .ui-button--quiet {
+    background-color: transparent;
+    color: var(--color-ink-muted);
+    border-color: transparent;
+    font-weight: 400;
+  }
+
+  @media (hover: hover) {
+    .ui-button--quiet:hover:not(:disabled) {
+      background-color: rgb(17 24 28 / 0.06);
+      color: var(--color-ink);
+    }
+  }
+
+  .ui-button--danger {
+    background-color: var(--color-danger);
+    color: var(--color-surface);
+  }
+
+  @media (hover: hover) {
+    .ui-button--danger:hover:not(:disabled) {
+      background-color: var(--color-danger-strong);
+    }
+  }
+
+  .ui-button--danger:active:not(:disabled) {
+    scale: 0.96;
   }
 }

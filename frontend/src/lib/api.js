@@ -20,8 +20,12 @@ import { es } from '../i18n/es.js'
 import {
   ApiError,
   parseApiError,
+  parseChatLimits,
+  parseChatMessage,
+  parseChatMessages,
   parseGameList,
   parseHealth,
+  parseLeaderboard,
   parseUser,
 } from './validators.js'
 
@@ -41,6 +45,8 @@ const MESSAGES = {
   unexpectedResponse: es.errors.unexpectedResponse,
   contentUnexpected: es.errors.contentUnexpected,
   formUnexpected: es.errors.formUnexpected,
+  chatUnavailable: es.errors.chatUnavailable,
+  messageRejected: es.errors.messageRejected,
 }
 
 /**
@@ -176,4 +182,97 @@ export async function fetchCurrentUser({ signal } = {}) {
   }
 
   return parseUser(await readJson(response), MESSAGES)
+}
+
+// --- Clasificación y chat (spec 007) -----------------------------------------
+
+
+/**
+ * La clasificación (R-001).
+ *
+ * Se consulta **sin sesión**: el modo espectador es el de quien todavía no tiene
+ * cuenta y quiere ver que hay gente jugando (§2.4).
+ *
+ * `gameId` vacío significa la clasificación global acumulada; con un
+ * identificador, la de ese juego.
+ */
+export function fetchLeaderboard({ gameId = '', limit, offset = 0, signal } = {}) {
+  const query = new URLSearchParams()
+
+  if (gameId) query.set('game_id', gameId)
+  if (limit) query.set('limit', String(limit))
+  if (offset > 0) query.set('offset', String(offset))
+
+  const suffix = query.toString()
+
+  return request(`/leaderboard${suffix === '' ? '' : `?${suffix}`}`, {
+    parse: parseLeaderboard,
+    signal,
+  })
+}
+
+/**
+ * Los mensajes nuevos desde la última consulta (R-003).
+ *
+ * `since` es la marca que devolvió la llamada anterior. **Se manda tal cual**,
+ * sin convertirla: si el cliente la reinterpretara, el polling iría perdiendo
+ * mensajes en algún momento y se vería como «a veces no llegan».
+ */
+export function fetchChatMessages({ since = '', signal } = {}) {
+  const query = new URLSearchParams()
+
+  if (since) query.set('since', since)
+
+  const suffix = query.toString()
+
+  return request(`/chat/messages${suffix === '' ? '' : `?${suffix}`}`, {
+    parse: parseChatMessages,
+    fallbackMessage: MESSAGES.chatUnavailable,
+    signal,
+  })
+}
+
+/**
+ * Envía un mensaje y devuelve el que el servidor ha guardado (R-004).
+ *
+ * El texto plano lo comprueba el servidor: aquí solo se avisa de lo que él diga.
+ * Ocultarlo en el cliente dejaría el problema abierto para quien llame a la API
+ * directamente (§2.5).
+ */
+export function sendChatMessage({ body, signal } = {}) {
+  return request('/chat/messages', {
+    method: 'POST',
+    parse: (payload, messages) => parseChatMessage(payload, messages),
+    fallbackMessage: MESSAGES.messageRejected,
+    signal,
+    body: { body },
+  })
+}
+
+/** Cuántos caracteres caben en un mensaje. */
+export function fetchChatLimits({ signal } = {}) {
+  return request('/chat/limits', { parse: parseChatLimits, signal })
+}
+
+/**
+ * Bloquea o desbloquea a alguien (R-006).
+ *
+ * `204` sin cuerpo: no se espera nada en la respuesta, y el servidor no manda
+ * inventos para llenar el hueco.
+ */
+export function setBlocked({ userId, blocked, signal } = {}) {
+  return request(`/users/${userId}/block`, {
+    method: blocked ? 'POST' : 'DELETE',
+    fallbackMessage: MESSAGES.unexpectedResponse,
+    signal,
+  })
+}
+
+/** Borra la cuenta y todo lo que pertenece a esa persona (R-010). */
+export function deleteAccount({ signal } = {}) {
+  return request('/auth/me', {
+    method: 'DELETE',
+    fallbackMessage: MESSAGES.formUnexpected,
+    signal,
+  })
 }

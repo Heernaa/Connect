@@ -3,6 +3,7 @@ import { RouteAnnouncer } from './RouteAnnouncer.jsx'
 import { SiteNav } from './SiteNav.jsx'
 import { es } from '../i18n/es.js'
 import { format } from '../i18n/format.js'
+import { DeleteAccountPanel } from './DeleteAccountPanel.jsx'
 
 /**
  * Esqueleto común a todas las pantallas (R-011).
@@ -63,10 +64,10 @@ export function Layout({ route, children, session, mainRef }) {
               <FontSizeControl />
             </div>
 
-            <SiteNav currentKind={route.kind} />
+            <SiteNav currentKind={route.kind} signedIn={Boolean(session.user)} />
 
             {session.user && (
-              <p className="flex flex-wrap items-center gap-3 text-lg">
+              <div className="flex flex-wrap items-center gap-3 text-lg">
                 <span>{format(es.login.signedInAs, { alias: session.user.alias })}</span>
                 <button
                   type="button"
@@ -76,7 +77,8 @@ export function Layout({ route, children, session, mainRef }) {
                 >
                   {session.signingOut ? es.login.signingOut : es.login.signOut}
                 </button>
-              </p>
+                <DeleteAccountPanel session={session} />
+              </div>
             )}
           </div>
         </header>
