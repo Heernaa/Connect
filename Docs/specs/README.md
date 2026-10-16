@@ -30,7 +30,7 @@ NNN-nombre/
 
 | Spec | Nombre | Cubre | Estado |
 | ---- | ------ | ----- | ------ |
-| [001](001-entorno-local/) | Entorno local | `docker compose`, esqueletos FastAPI y Vite, git | Pendiente |
+| [001](001-entorno-local/) | Entorno local | `docker compose`, esqueletos FastAPI y Vite, git | Implementada |
 | [002](002-esquema-datos/) | Esquema de datos | Modelos, Alembic, carga del seed, test de integridad | Pendiente |
 | [003](003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | Pendiente |
 | [004](004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | Pendiente |

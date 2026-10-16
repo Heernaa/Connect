@@ -92,7 +92,9 @@
   puntuación no se puede falsear.
 - La fórmula de puntuación va **en un solo módulo**. Si hay un número mágico
   repetido en dos sitios, se ha roto el requisito de "una sola fuente".
-- `[WORDLE_POINTS]` y `[ACERTIJO_POINTS]` son valores propuestos, no
-  confirmados. Están marcados como tales en la constitución (§0.2) y hay que
-  decidir antes de implementar 5.12 y 5.13.
+- `[WORDLE_POINTS]` y `[ACERTIJO_POINTS]` están **decididos** el 2026-10-16:
+  Wordle base 100 con −10 % por intento, Acertijo 10 puntos fijos. Constan en
+  §2.1.5 y §0.1 de la constitución, y en `Docs/dudas.md` §5. La tarea 5.12
+  implementa la fórmula de Wordle y la 5.13 los 10 puntos fijos del acertijo,
+  importando los valores desde el módulo único de puntuación.
 - Al terminar, merge a `main` y actualizar el índice de `Docs/specs/README.md`.

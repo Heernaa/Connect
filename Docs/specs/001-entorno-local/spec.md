@@ -1,6 +1,6 @@
 # Spec 001 — Entorno local
 
-**Estado:** pendiente
+**Estado:** implementada
 **Fase:** 1 de 7
 **Constitución:** §7.0 (entorno local), §3 (estándares de código)
 
@@ -114,13 +114,13 @@ Connect/
 
 ## 4. Criterios de aceptación
 
-- [ ] `docker compose up` levanta los tres servicios sin error.
-- [ ] `GET /api/health` devuelve `200` y confirma conexión con la base de datos.
-- [ ] `npm run build` en `frontend/` termina sin errores ni avisos bloqueantes.
-- [ ] La página inicial de la web muestra `lang="es"`.
-- [ ] `.env` no aparece en `git status` tras crearse.
-- [ ] `git grep` no encuentra ninguna contraseña real en el repositorio.
-- [ ] El `README.md` permite a alguien sin contexto arrancar el proyecto.
+- [x] `docker compose up` levanta los tres servicios sin error.
+- [x] `GET /api/health` devuelve `200` y confirma conexión con la base de datos.
+- [x] `npm run build` en `frontend/` termina sin errores ni avisos bloqueantes.
+- [x] La página inicial de la web muestra `lang="es"`.
+- [x] `.env` no aparece en `git status` tras crearse.
+- [x] `git grep` no encuentra ninguna contraseña real en el repositorio.
+- [x] El `README.md` permite a alguien sin contexto arrancar el proyecto.
 
 ## 5. Dependencias y referencias
 
