@@ -35,6 +35,10 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      # El contenido de los juegos se monta de solo lectura: los tests de
+      # integridad lo necesitan y no tiene sentido que el contenedor pueda
+      # escribir en el contenido del MVP (§2.1.3).
+      - ./data:/data:ro
     depends_on:
       db:
         condition: service_healthy
