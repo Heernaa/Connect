@@ -35,16 +35,18 @@ NNN-nombre/
 | [003](003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | **Implementada** |
 | [004](004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | **Implementada** |
 | [005](005-persistencia-partidas/) | Persistencia de partidas | Guardado y restauración de progreso, puntuación | **Implementada** |
-| [006](006-frontend-accesible/) | Frontend accesible | Tokens de diseño, navegación por teclado, diccionario | **Implementada** |
+| [006](006-frontend-accesible/) | Frontend accesible | Tokens de diseño, teclado, diccionario y **los tres juegos** | En implementación |
 | [007](007-clasificacion-y-chat/) | Clasificación y chat | Leaderboard, chat por polling, bloqueo | **Implementada** |
-| [008](008-e2e-y-accesibilidad/) | E2E y accesibilidad | Playwright en tres dispositivos, auditoría WCAG | Bloqueada (§5) |
+| [008](008-e2e-y-accesibilidad/) | E2E y accesibilidad | Playwright en tres dispositivos, auditoría WCAG | Planificada |
 
-**Estado: specs 001 a 007 implementadas.** La comunidad —clasificación, chat,
-bloqueo y borrado de cuenta— está construida.
+**Estado: specs 001 a 005 y 007 implementadas; 006 y 008 en curso.**
 
-La **008 está bloqueada**: sus requisitos piden recorridos y auditorías de las
-pantallas de los tres juegos, y **no existe spec de esas pantallas** (la 006 las
-deja fuera y nada las cubre). Está anotado en §11, fila 8, de la constitución.
+La 006 se amplió el 2026-10-16 para incluir **las pantallas de los tres juegos**
+(R-014 a R-020). Antes las dejaba fuera remitiendo a «specs de la fase 6» que
+nunca se escribieron, y su consecuencia fue una API de juegos completa sin
+ninguna pantalla donde jugar. La ampliación trae también dos requisitos que la
+constitución exigía y que ninguna spec tenía: el botón «Saltar partida» (§2.1.6)
+y el reporte de respuesta correcta rechazada (§2.1.4).
 
 ### Qué hereda la siguiente spec
 

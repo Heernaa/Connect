@@ -8,7 +8,7 @@
 > la constitución gana. Si el conflicto es inevitable, hay que pedir
 > aprobación explícita y documentar la excepción en el registro de decisiones.
 
-**Estado:** v0.11 — retención y polling del chat decididos (spec 007)
+**Estado:** v0.12 — la spec 006 absorbe las pantallas de los tres juegos
 **Última actualización:** 2026-10-16
 
 ---
@@ -833,6 +833,7 @@ Esta constitución cambia explícitamente, nunca por inercia.
 | v0.9    | 2026-10-16 | Placeholders de las specs 001-005 resueltos (§0.1): `pytest`+`httpx` (§5), contraseña mínima de 8 caracteres (§6.2), Wordle base 100 con −10 % por intento y Acertijo 10 puntos fijos (§2.1.5). Se añade `[ACERTIJO_POINTS]`, que faltaba en §0.2 y bloqueaba la tarea 5.13 de la spec 005. Ningún principio se relaja. | —     |
 | v0.10   | 2026-10-16 | Lenguaje visual del frontend: sistema de tokens derivado del diseño de Figma y adaptado a WCAG 2.2 AA, documentado en [`sistema-diseno.md`](./sistema-diseno.md). El color de Figma se conserva; los valores que fallaban el contraste se sustituyen por otros medidos. Ningún principio se relaja. | — |
 | v0.11   | 2026-10-16 | Chat: retención de **90 días** y polling de **10 s** (`[CHAT_RETENTION]` y `[POLL_INTERVAL]` resueltos, bloqueaban la spec 007). Límite de mensaje de **500 caracteres**. Derecho de borrado de datos implementado; el de exportación queda como deuda (§11, fila 7). Se registra además que falta la spec de la interfaz de los tres juegos (§11, fila 8). | — |
+| v0.12   | 2026-10-16 | Las pantallas de Paraulógic, Wordle y Acertijo entran en la **spec 006**, que deja de ser solo-frontend. Se añade el botón «Saltar partida» que §2.1.6 exigía y que nada escribía desde la spec 002, y el reporte de respuesta correcta rechazada de §2.1.4, que no existía en ninguna spec. La 008 queda desbloqueada. | — |
 
 ---
 
@@ -849,12 +850,12 @@ Todo incumplimiento consciente de la constitución se registra aquí.
 | 5   | Sin verificación de correo (§6.3)                 | Decisión de producto                                | Revisar si se despliega                                        | 🟡 Media |
 | 6   | Sin HTTPS (§7.0)                                 | Solo local                                          | Obligatorio si se despliega. Nunca exponer fuera de localhost | 🟢 Baja |
 | 7   | Sin exportación de datos del usuario (§6.5)       | La spec 007 implementa el borrado, no la exportación | Endpoint de exportación y su pantalla, en una spec posterior | 🟡 Media |
-| 8   | Interfaz de los tres juegos sin spec (§2.1.4)     | La 006 la deja fuera y no hay spec que la cubra      | Spec de Paraulógic, Wordle y Acertijo antes de la 008 | 🔴 Alta |
+| 8   | Reportes de acertijo sin leer (§2.1.4)             | Sin moderadores ni revisor, igual que el chat         | Alguien mira los casos legítimos y ajusta la normalización | 🟡 Media |
 
-> **La fila 8 bloquea la spec 008.** No es una deuda «para cuando haya tiempo»:
-> mientras no exista esa spec, los requisitos de la 008 que piden recorridos y
-> auditorías de las pantallas de los juegos no tienen nada que medir, y la spec
-> no se puede cerrar por más que el resto de la suite esté en verde.
+> La fila 8 **sustituye** a la anterior: la interfaz de los juegos ya está cubierta
+> por la spec 006 (ampliación del 2026-10-16). Lo que queda sin resolver es que
+> los reportes de acertijo se registran pero no los lee nadie —igual que el chat
+> sin moderación en la fila 1—, y eso es una decisión consciente, no un olvido.
 
 > Una deuda sin plan de resolución no es deuda: es una excepción silenciosa.
 

@@ -1,6 +1,7 @@
 # Spec 008 — E2E y verificación de accesibilidad
 
-**Estado:** planificada — **bloqueada** (ver §5)
+**Estado:** planificada — desbloqueada (las pantallas de los juegos están en la
+spec 006)
 **Fase:** 7 de 7
 **Constitución:** §5 (pruebas), §4.3 (verificación), §7.1 (dispositivos)
 
@@ -111,13 +112,12 @@ y móvil — porque ninguno de los tres es secundario (§7.1).
 - **Constitución:** §4.1, §4.2, §4.3 (accesibilidad), §5 (estrategia de
   pruebas), §7.1 (dispositivos).
 
-> ⛔ **Esta spec no se puede implementar todavía.** R-001, R-002 y R-005 exigen
+> **Esta spec estaba bloqueada y ya no lo está.** R-001, R-002 y R-005 exigen
 > recorridos y auditorías de **las pantallas de los tres juegos**, y esas
-> pantallas **no existen**: la spec 006 las deja fuera de su alcance («specs de la
-> fase 6») y no hay ninguna spec que las cubra. Sin ellas, «un E2E por juego» y
-> «axe sobre todas las pantallas» no tienen nada que auditar.
+> pantallas no existían: la 006 las dejaba fuera de su alcance remitiendo a
+> «specs de la fase 6» que nunca se escribieron.
 >
-> Antes de empezar la 008 hay que **escribir la spec de la interfaz de
-> Paraulógic, Wordle y Acertijo** (§2.1.4). Está registrada como deuda técnica
-> en §11, fila 8, de la constitución. Lo que sí resuelve la 007 son sus
-> requisitos de clasificación y chat.
+> El 2026-10-16 las pantallas de Paraulógic, Wordle y Acertijo entraron en la
+> **spec 006** (R-014 a R-020), junto con el botón «Saltar partida» de §2.1.6 y
+> el reporte de acertijo de §2.1.4. Con eso, «un E2E por juego» y «axe sobre
+> todas las pantallas» ya tienen algo que medir.

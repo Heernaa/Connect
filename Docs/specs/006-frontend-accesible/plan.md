@@ -1,11 +1,17 @@
 # Plan — Spec 006: Frontend accesible
 
-**Estado:** implementada
-**Progreso:** 31/31 tareas
-**Rama:** `feature/spec-006-frontend-accesible`
+**Estado:** en implementación — base (31 tareas) hecha; juegos en curso
+**Progreso:** 31/44 tareas
+**Rama:** `feature/spec-006-frontend-accesible` (continúa sobre el merge de 007)
 **Spec:** [`spec.md`](./spec.md)
 
-## Tareas
+> **Ampliación de alcance del 2026-10-16.** Esta spec pasó de ser solo-frontend a
+> incluir las tres pantallas de juego (R-014 a R-020). El motivo está en
+> [`spec.md` §2.bis](./spec.md): la versión anterior remitía a «specs de la
+> fase 6» para los juegos que nunca se escribieron, y su consecuencia fue una
+> API completa sin ninguna pantalla donde jugar.
+
+## Tareas — la base (R-001 a R-013)
 
 ### R-001 a R-003 — Tokens de diseño
 
@@ -158,6 +164,59 @@ en una banda de acento, para que el foco siempre caiga sobre blanco.
       axe-core y compilación.
       → *R-002, R-005, R-010, R-012*
 
+## Tareas — los juegos (R-014 a R-020)
+
+### Contrato con la API (R-019, R-018)
+
+- [ ] 6.32 `GET /api/games`: añadir `played` y `score` por juego, sin quitar ni
+      cambiar los campos que ya había.
+      → *R-018*, *R-019* — `schemas/games.py::GameSummary`. Sin sesión se
+      devuelven los valores neutros, y la lista se ve igual (§2.4).
+- [ ] 6.33 `POST /api/games/{id}/abandon`.
+      → *R-015*, *R-019* — escribe la columna `abandoned`, que existe desde la
+      spec 002 y no tenía nada que la escribiera.
+- [ ] 6.34 `POST /api/games/riddle/report` y su tabla de reportes.
+      → *R-017*, *R-019* — guarda lo escrito y el acertijo. Nada más: ni
+      `username`, ni IP. Sin moderadores, igual que el chat (§6.8).
+- [ ] 6.35 Tests de los tres endpoints nuevos.
+      → *R-015*, *R-017*, *R-018*, *R-019*
+
+### Los tres juegos (R-014, R-016)
+
+- [ ] 6.36 Validadores de cliente para las respuestas de los juegos.
+      → *R-014*, y R-013 — la forma se comprueba antes de pintar nada.
+- [ ] 6.37 `ParaulogicPage`: letras, campo para escribir, palabras encontradas,
+      botón de pista y contador de pendientes.
+      → *R-014*, *R-016* — intentos ilimitados, sin estado de derrota. El
+      contador de pendientes **resta al encontrar**, no se queda en el total.
+- [ ] 6.38 `WordlePage`: cinco huecos, teclado en pantalla, historial de
+      intentos con las tres pistas por letra.
+      → *R-014*, *R-016* — cada pista por **texto e icono** (§2.1.4). Teclado en
+      pantalla porque es lo que permite jugar sin precisión motora fina.
+- [ ] 6.39 `RiddlePage`: enunciado, respuesta y reporte tras un rechazo.
+      → *R-014*, *R-016*, *R-017*
+- [ ] 6.40 «Saltar partida» en las tres pantallas, más el enlace a la lista.
+      → *R-015* — un solo paso, sin confirmar. En Wordle avisa de que consume
+      la única partida, porque eso sí es irreversible.
+- [ ] 6.41 Los patrones visuales nuevos, **en el sistema de diseño**.
+      → *R-016* — la fila de letras, el tablero y el contador van a `index.css`
+      y a `contrastPairs.js`, no dentro del componente (§3.3).
+- [ ] 6.42 La lista de juegos dice el estado real, sin escribirlo a mano.
+      → *R-018* — se elimina el «Sin jugar» fijo y el comentario que lo admitía.
+- [ ] 6.43 Enlazar el botón «Jugar» de cada tarjeta con su juego.
+      → *R-014*
+
+### Verificación (R-020, y R-002, R-005, R-010)
+
+- [ ] 6.44 Auditar con axe las tres pantallas en **todos** sus estados: vacío,
+      con palabras escritas, con error de validación, terminado y con Wordle ya
+      jugado.
+      → *R-020* — auditar solo el estado vacío no comprueba nada.
+- [ ] 6.45 Recorrido completo de un juego solo con teclado, en las tres pantallas.
+      → *R-014*, R-005
+- [ ] 6.46 Reflow a 360px y con la fuente al 200% en las tres pantallas.
+      → *R-010*
+
 ## Verificación de la spec
 
 - [x] V.1 La fuente llega al 200% y persiste al recargar.
@@ -182,6 +241,19 @@ en una banda de acento, para que el foco siempre caiga sobre blanco.
       → `src/design/document.test.js`.
 - [x] V.11 Datos inválidos producen mensaje, no pantalla rota.
       → `src/lib/validators.test.js` y `src/pages/pages.test.jsx`.
+
+### De los juegos
+
+- [ ] V.12 Se juega a los tres juegos enteros solo con teclado.
+- [ ] V.13 «Saltar partida» es visible en las tres y no pierde progreso.
+- [ ] V.14 Volver a un juego restaura el progreso y avisa de que no es la
+      primera vez.
+- [ ] V.15 Las tres pistas de Wordle se distinguen sin color.
+- [ ] V.16 El reporte de acertijo solo aparece tras un rechazo, no da puntos, y
+      se puede volver a ver.
+- [ ] V.17 La lista de juegos dice el estado real de los tres.
+- [ ] V.18 axe no reporta violaciones en las pantallas de juego, en ningún
+      estado.
 
 ## Notas
 
