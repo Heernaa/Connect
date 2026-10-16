@@ -47,11 +47,11 @@ dos cosas separadas a propósito: el esquema tiene una única fuente de verdad y
 contenido se puede recargar sin tocar la estructura (§2.1.3).
 
 ```bash
-alembic upgrade head                                    # Aplica las migraciones
-alembic downgrade base                                  # Las revierte
-alembic revision --autogenerate -m "qué cambia"        # Nueva migración
+docker compose exec backend alembic upgrade head
+docker compose exec backend alembic downgrade base
+docker compose exec backend alembic revision --autogenerate -m "qué cambia"
 
-docker compose exec -T db psql -U connect -d connect < ../data/seed_v0.sql
+docker compose exec -T db psql -U connect -d connect < data/seed_v0.sql
 ```
 
 El seed es **idempotente**: cargarlo dos veces no duplica contenido. Eso lo
