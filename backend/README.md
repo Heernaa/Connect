@@ -57,6 +57,21 @@ docker compose exec -T db psql -U connect -d connect < ../data/seed_v0.sql
 El seed es **idempotente**: cargarlo dos veces no duplica contenido. Eso lo
 garantiza que `paraulogic_sets.letters` sea única.
 
+## Puntuación
+
+La fórmula vive **solo** en `app/services/scoring.py`. Si un número aparece
+repetido en dos ficheros, la puntuación deja de tener una fuente única.
+
+| Juego | Fórmula |
+| --- | --- |
+| Paraulógic | 1 punto por palabra encontrada. Pistas y fallos no restan. |
+| Wordle | Base 100, −10 % por cada intento **de más** (el primero no penaliza). Suelo: 50. |
+| Acertijo | 10 puntos fijos al acertar. Fallar no resta nada. |
+
+La puntuación **nunca se recibe del cliente**: los esquemas de petición no tienen
+campo `score` ni `points`, y el servidor la calcula desde lo que hay registrado
+(§6.6).
+
 ## Pruebas
 
 ```bash
