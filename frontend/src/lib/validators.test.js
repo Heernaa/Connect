@@ -68,18 +68,33 @@ describe('validadores de la API (R-013)', () => {
       // traducción ocurre aquí, en un solo sitio, en lugar de en cada
       // componente.
       const parsed = parseGameSummary(
-        { game_id: 'wordle', name: 'Wordle', description: 'Adivina la palabra.' },
+        {
+          game_id: 'wordle',
+          name: 'Wordle',
+          description: 'Adivina la palabra.',
+          played: true,
+          score: 100,
+        },
         MESSAGES,
       )
 
-      expect(parsed).toEqual({ gameId: 'wordle', name: 'Wordle', description: 'Adivina la palabra.' })
+      expect(parsed).toEqual({
+        gameId: 'wordle',
+        name: 'Wordle',
+        description: 'Adivina la palabra.',
+        played: true,
+        score: 100,
+      })
     })
 
     it.each([
-      ['sin nombre', { game_id: 'wordle', description: 'x' }],
-      ['con nombre vacío', { game_id: 'wordle', name: '   ', description: 'x' }],
-      ['sin identificador', { name: 'Wordle', description: 'x' }],
-      ['con la descripción como número', { game_id: 'w', name: 'W', description: 42 }],
+      ['sin nombre', { game_id: 'wordle', description: 'x', score: 0 }],
+      ['con nombre vacío', { game_id: 'wordle', name: '   ', description: 'x', score: 0 }],
+      ['sin identificador', { name: 'Wordle', description: 'x', score: 0 }],
+      ['con la descripción como número', { game_id: 'w', name: 'W', description: 42, score: 0 }],
+      // R-018: `score` sin el que sea un número se rechaza. Con `NaN` o un
+      // objeto, la tarjeta pintaría un valor que no es una puntuación.
+      ['con los puntos como texto', { game_id: 'w', name: 'W', description: 'x', score: 'muchos' }],
     ])('rechaza un juego %s', (_label, payload) => {
       expect(() => parseGameSummary(payload, MESSAGES)).toThrow(MESSAGES.contentUnexpected)
     })
@@ -89,8 +104,8 @@ describe('validadores de la API (R-013)', () => {
     it('devuelve la lista completa', () => {
       const parsed = parseGameList(
         [
-          { game_id: 'wordle', name: 'Wordle', description: 'a' },
-          { game_id: 'paraulogic', name: 'Paraulógic', description: 'b' },
+          { game_id: 'wordle', name: 'Wordle', description: 'a', played: true, score: 100 },
+          { game_id: 'paraulogic', name: 'Paraulógic', description: 'b', played: false, score: 0 },
         ],
         MESSAGES,
       )

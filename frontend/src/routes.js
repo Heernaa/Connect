@@ -3,6 +3,12 @@ import { es } from './i18n/es.js'
 /**
  * Mapa de rutas: el único sitio donde se decide qué se pinta en cada pantalla.
  *
+ * **La clave es la ruta.** `resolveRoute` busca por el hash limpio, así que una
+ * clave distinta del `path` haría que esa pantalla no existiera y todo caería en
+ * la portada sin explicar por qué (§2.1.6). Por eso las de los juegos repiten
+ * `game/` en la clave y en el `path`: es incómodo y es deliberado, y
+ * `routes.test.js` falla si algún día dejan de coincidir.
+ *
  * Cada entrada lleva el título del documento. No es adorno: es lo que lee el
  * lector de pantalla al cambiar de pestaña, y lo que anuncia el mensaje de
  * «página cambiada» (R-005). El título viene del diccionario (§4.2), porque es
@@ -46,6 +52,29 @@ export const ROUTES = {
     path: 'chat',
     title: `${es.nav.chat} — ${es.app.name}`,
     kind: 'chat',
+  },
+
+  // Los tres juegos (spec 006 · R-014). El sufijo es el `game_id` de la API, no
+  // el nombre del juego: `game_id` es un identificador estable y `name` es un
+  // texto que puede cambiar —«Paraulógic» se renombra sin que pase a ser otro
+  // juego—. Los títulos salen del diccionario, no del nombre del juego (§3.1).
+  'game/paraulogic': {
+    path: 'game/paraulogic',
+    title: `${es.paraulogic.heading} — ${es.app.name}`,
+    kind: 'game',
+    gameId: 'paraulogic',
+  },
+  'game/wordle': {
+    path: 'game/wordle',
+    title: `${es.wordle.heading} — ${es.app.name}`,
+    kind: 'game',
+    gameId: 'wordle',
+  },
+  'game/riddle': {
+    path: 'game/riddle',
+    title: `${es.riddle.heading} — ${es.app.name}`,
+    kind: 'game',
+    gameId: 'riddle',
   },
 }
 

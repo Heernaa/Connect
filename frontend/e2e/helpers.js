@@ -22,21 +22,32 @@ export const API_RESPONSES = {
     has_more: false,
   },
 
+  /*
+   * `played` y `score` los añade la spec 006 · R-018. El validador del cliente
+   * los exige: sin ellos la lista **entera** falla y la pantalla se queda vacía.
+   * Por eso no hay una versión «mínima» de esta fixture.
+   */
   games: [
     {
       game_id: 'paraulogic',
       name: 'Paraulógic',
       description: 'Un conjunto de letras forma muchas palabras. Intenta encontrar todas.',
+      played: false,
+      score: 0,
     },
     {
       game_id: 'wordle',
       name: 'Wordle',
       description: 'Adivina la palabra de cinco letras. Tienes seis intentos.',
+      played: true,
+      score: 100,
     },
     {
-      game_id: 'acertijo',
+      game_id: 'riddle',
       name: 'Acertijo',
       description: 'Lee la pregunta y escribe la respuesta que estés pensando.',
+      played: false,
+      score: 0,
     },
   ],
 }
@@ -113,6 +124,176 @@ export function chatMessage(id, body, extra = {}) {
 /** Una respuesta de mensajes del chat con su marca de tiempo. */
 export function chatResponse(messages, pollFrom = '2026-10-16T12:00:00Z') {
   return { messages, poll_from: pollFrom }
+}
+
+/** Contenido y sesión de Paraulógic. */
+export const PARAULOGIC = {
+  content: { letters: 'AENRST', pending_count: 3 },
+  session: {
+    game_id: 'paraulogic',
+    status: 'active',
+    found_words: [],
+    pending_count: 3,
+    score: 0,
+  },
+  /** Con dos palabras ya encontradas: es el estado de quien vuelve (§2.1.7). */
+  sessionEnMarcha: {
+    game_id: 'paraulogic',
+    status: 'active',
+    found_words: ['LUNAS', 'TREN'],
+    pending_count: 19,
+    score: 2,
+  },
+}
+
+/** Contenido y sesión de Wordle. */
+export const WORDLE = {
+  content: { word: 'LUNAS', already_finished: false },
+  session: {
+    game_id: 'wordle',
+    status: 'active',
+    attempts_used: 0,
+    max_attempts: 6,
+    attempts: [],
+    score: 0,
+  },
+  /** Con un intento hecho y sus tres pistas: es donde está la rejilla. */
+  sessionConIntento: {
+    game_id: 'wordle',
+    status: 'active',
+    attempts_used: 1,
+    max_attempts: 6,
+    attempts: [
+      {
+        attempt_number: 1,
+        guess: 'NUBES',
+        feedback: ['absent', 'present', 'correct', 'absent', 'present'],
+        solved: false,
+        score: 0,
+      },
+    ],
+    score: 0,
+  },
+  /** Con la partida ya jugada: la pantalla tiene que mostrar el resultado. */
+  sessionTerminada: {
+    game_id: 'wordle',
+    status: 'finished',
+    attempts_used: 6,
+    max_attempts: 6,
+    attempts: [],
+    score: 0,
+  },
+}
+
+/** Contenido y sesión del acertijo. */
+export const RIDDLE = {
+  content: { question: 'Tengo ciudades, pero no casas. ¿Qué soy?' },
+  session: { game_id: 'riddle', status: 'active', attempts_used: 0, solved: false, score: 0 },
+  sessionFallado: { game_id: 'riddle', status: 'active', attempts_used: 2, solved: false, score: 0 },
+  sessionAcierto: { game_id: 'riddle', status: 'finished', attempts_used: 3, solved: true, score: 10 },
+}
+
+/**
+ * Intercepta la API de los juegos con un estado concreto.
+ *
+ * `overrides` va por ruta: `{ '/games/paraulogic/session': {...} }`. Se escribe
+ * así, y no con una función, para que cada test de la suite diga en la llamada
+ * qué estado está montando y no haya que leer dentro de un closure para saberlo.
+ *
+ * El orden de los `route` importa: Playwright evalúa **el último registrado
+ * primero**, así que las rutas concretas (`/games/wordle/session`) se registran
+ * antes que las generales (`/games/wordle`) que si no se comerían a las
+ * primeras.
+ */
+export async function stubGames(page, overrides = {}) {
+  const body = (key) => overrides[key]
+
+  // --- Paraulógic ---
+  await page.route('**/api/games/paraulogic/session', (route) =>
+    route.fulfill({ json: body('/games/paraulogic/session') ?? PARAULOGIC.session }),
+  )
+  await page.route('**/api/games/paraulogic/hint', (route) =>
+    route.fulfill({
+      json:
+        body('/games/paraulogic/hint') ?? {
+          hint_text: 'Empieza por T',
+          word_length: 5,
+          is_common: false,
+        },
+    }),
+  )
+  await page.route('**/api/games/paraulogic/attempt', (route) =>
+    route.fulfill({
+      status: 201,
+      json: body('/games/paraulogic/attempt') ?? { is_correct: false, score: 0 },
+    }),
+  )
+  await page.route('**/api/games/paraulogic', (route) =>
+    route.fulfill({ json: body('/games/paraulogic') ?? PARAULOGIC.content }),
+  )
+
+  // --- Wordle ---
+  await page.route('**/api/games/wordle/session', (route) =>
+    route.fulfill({ json: body('/games/wordle/session') ?? WORDLE.session }),
+  )
+  await page.route('**/api/games/wordle/attempt', (route) =>
+    route.fulfill({
+      status: 201,
+      json:
+        body('/games/wordle/attempt') ?? {
+          attempt_number: 1,
+          guess: 'NUBES',
+          feedback: ['absent', 'present', 'correct', 'absent', 'present'],
+          solved: false,
+          score: 0,
+        },
+    }),
+  )
+  await page.route('**/api/games/wordle', (route) =>
+    route.fulfill({ json: body('/games/wordle') ?? WORDLE.content }),
+  )
+
+  // --- Acertijo ---
+  await page.route('**/api/games/riddle/session', (route) =>
+    route.fulfill({ json: body('/games/riddle/session') ?? RIDDLE.session }),
+  )
+  await page.route('**/api/games/riddle/report', (route) =>
+    route.fulfill({
+      status: 201,
+      json:
+        body('/games/riddle/report') ?? {
+          report_id: 1,
+          given_answer: 'el mundo',
+          gave_points: false,
+          message: 'Guardado.',
+        },
+    }),
+  )
+  await page.route('**/api/games/riddle/answer', (route) =>
+    route.fulfill({
+      json: body('/games/riddle/answer') ?? { is_correct: false, attempts_used: 1 },
+    }),
+  )
+  await page.route('**/api/games/riddle', (route) =>
+    route.fulfill({ json: body('/games/riddle') ?? RIDDLE.content }),
+  )
+
+  // El catálogo, con `played` y `score` (spec 006 · R-018). Va al final: `**/api/games`
+  // es el patrón más general de todos y se quedaría con la petición del catálogo.
+  await page.route('**/api/games', (route) =>
+    route.fulfill({ json: body('/api/games') ?? API_RESPONSES.games }),
+  )
+
+  // Salir de la partida (R-015). Sin esto, el botón dejaría la pantalla en
+  // error en cualquier test que lo pulse.
+  await page.route('**/api/games/*/abandon', (route) => {
+    const gameId = route.request().url().split('/games/')[1].split('/')[0]
+    const gaveUp = gameId === 'wordle'
+
+    return route.fulfill({
+      json: { game_id: gameId, gave_up: gaveUp, message: 'Has salido de la partida.' },
+    })
+  })
 }
 
 /**

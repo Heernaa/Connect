@@ -50,8 +50,20 @@ function stubApi({ games } = {}) {
     if (url.includes('/games')) {
       return jsonResponse(
         games ?? [
-          { game_id: 'wordle', name: 'Wordle', description: 'Adivina la palabra de cinco letras.' },
-          { game_id: 'paraulogic', name: 'Paraulógic', description: 'Encuentra todas las palabras.' },
+          {
+            game_id: 'wordle',
+            name: 'Wordle',
+            description: 'Adivina la palabra de cinco letras.',
+            played: false,
+            score: 0,
+          },
+          {
+            game_id: 'paraulogic',
+            name: 'Paraulógic',
+            description: 'Encuentra todas las palabras.',
+            played: false,
+            score: 0,
+          },
         ],
       )
     }
@@ -164,7 +176,13 @@ describe('lista de juegos (R-011, R-013)', () => {
     await screen.findByRole('heading', { name: 'Wordle' })
 
     expect(screen.getAllByText(new RegExp(es.games.notPlayed)).length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('button', { name: es.games.play }).length).toBe(2)
+
+    // R-014: el botón es un **enlace** y lleva a la pantalla del juego. Antes
+    // era un `<button>` que no llevaba a ninguna parte.
+    const jugar = screen.getAllByRole('link', { name: es.games_ui.play })
+
+    expect(jugar).toHaveLength(2)
+    expect(jugar[0]).toHaveAttribute('href', '#/game/wordle')
   })
 
   it('avisa con un mensaje claro si la API devuelve algo que no cuadra', async () => {

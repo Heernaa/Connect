@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 
-import { Button } from '../components/ui/Button.jsx'
 import { ErrorMessage } from '../components/ui/ErrorMessage.jsx'
 import { StatusIndicator } from '../components/ui/StatusIndicator.jsx'
 import { es } from '../i18n/es.js'
 import { format } from '../i18n/format.js'
+import { formatPoints } from '../i18n/socialFormat.js'
 import { fetchGames } from '../lib/api.js'
 import { accentFor } from '../lib/gameAccent.js'
+import { routeHref } from '../routes.js'
 
 const LOADING = 'loading'
 const READY = 'ready'
@@ -143,18 +144,33 @@ function GameCard({ game }) {
 
       <div className="mt-auto flex flex-wrap items-center gap-3">
         {/*
-          En el MVP todos los juegos están sin jugar para quien acaba de entrar:
-          no hay todavía una forma de saber si alguien ya jugó a uno. Cuando la
-          haya, esta tarjeta solo tendrá que cambiar el texto del indicador, no
-          rehacerse (R-011).
+          El estado y los puntos vienen **del servidor** (spec 006 · R-018). Antes
+          esto decía «Sin jugar» escrito a mano para todos los juegos, con un
+          comentario que lo admitía: no había forma de saber si alguien ya había
+          jugado, porque la API no lo decía. Ahora `/api/games` lo devuelve y la
+          lista dice la verdad.
         */}
-        <StatusIndicator tone="neutral">
-          {format(es.games.stateLabel, { state: es.games.notPlayed })}
+        <StatusIndicator tone={game.played ? 'success' : 'neutral'}>
+          {format(es.games.stateLabel, { state: game.played ? es.games.played : es.games.notPlayed })}
         </StatusIndicator>
+
+        {game.score > 0 && (
+          <span className="text-lg font-semibold">
+            {formatPoints(game.score)}
+          </span>
+        )}
       </div>
 
+      {/*
+        El botón **es un enlace**. Antes era un `<button>` que no llevaba a
+        ninguna parte: se pulsaba y no pasaba nada, que es un callejón sin salida
+        (§2.1.6). Con `href` además se puede abrir en otra pestaña y copiar
+        (R-005).
+      */}
       <div>
-        <Button>{es.games.play}</Button>
+        <a className="ui-button ui-button--primary" href={routeHref(`game/${game.gameId}`)}>
+          {game.played ? es.games_ui.resume : es.games_ui.play}
+        </a>
       </div>
     </section>
   )

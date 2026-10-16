@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 
 import { Layout } from './components/Layout.jsx'
 import { ChatPage } from './pages/ChatPage.jsx'
+import { GameScreen } from './pages/gamePages.jsx'
 import { GamesPage } from './pages/GamesPage.jsx'
 import { HomePage } from './pages/HomePage.jsx'
 import { LeaderboardPage } from './pages/LeaderboardPage.jsx'
@@ -82,6 +83,19 @@ export default function App() {
 
       {/* El chat no: exige sesión, y lo dice con claridad en vez de dar un 401 (R-009). */}
       {route.kind === 'chat' && <ChatPage signedIn={Boolean(session.user)} />}
+
+      {/*
+        Los tres juegos (spec 006 · R-014). Se eligen por `game_id`, que es lo
+        único estable; el nombre de la ruta y el título salen de `routes.js`.
+
+        La sesión se pasa a la pantalla y **cada una decide** qué hacer sin ella.
+        Lo que no se hace es un `<RequireAuth>` en medio: el aviso de «entra para
+        jugar» es parte del juego y tiene que salir con el mismo esqueleto que el
+        resto de la pantalla, o al cambiar de juego el fondo daría un salto.
+      */}
+      {route.kind === 'game' && (
+        <GameScreen gameId={route.gameId} signedIn={Boolean(session.user)} />
+      )}
     </Layout>
   )
 }

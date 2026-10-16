@@ -1,7 +1,6 @@
 # Spec 006 — Frontend accesible
 
-**Estado:** en implementación — la base (R-001 a R-013) está hecha; los juegos
-(R-014 a R-020) se están construyendo
+**Estado:** implementada
 **Fase:** 5 de 7
 **Constitución:** §1.1 y §4 (accesibilidad), §2.1.4 y §2.1.6 (los juegos),
 §3.1 (idiomas)
@@ -275,18 +274,18 @@ Existe una prueba automática que audita cada pantalla:
 
 ### De los juegos
 
-- [ ] Se puede jugar a los tres juegos enteros solo con teclado.
-- [ ] El botón «Jugar» de cada tarjeta lleva a su juego.
-- [ ] «Saltar partida» está visible en las tres pantallas y es un solo paso.
-- [ ] Volver a un juego restaura el progreso y avisa de que no es la primera vez.
-- [ ] En Wordle las tres pistas de cada letra se distinguen sin color.
-- [ ] Fallar no resta puntos, y la pantalla lo dice.
-- [ ] El botón de reportar solo aparece tras una respuesta rechazada.
-- [ ] El reporte no concede puntos y la pantalla no promete que sí.
-- [ ] La lista de juegos dice si cada juego está jugado, sin escribirlo a mano.
-- [ ] axe-core no reporta violaciones A ni AA en las pantallas de los juegos,
+- [x] Se puede jugar a los tres juegos enteros solo con teclado.
+- [x] El botón «Jugar» de cada tarjeta lleva a su juego.
+- [x] «Saltar partida» está visible en las tres pantallas y es un solo paso.
+- [x] Volver a un juego restaura el progreso y avisa de que no es la primera vez.
+- [x] En Wordle las tres pistas de cada letra se distinguen sin color.
+- [x] Fallar no resta puntos, y la pantalla lo dice.
+- [x] El botón de reportar solo aparece tras una respuesta rechazada.
+- [x] El reporte no concede puntos y la pantalla no promete que sí.
+- [x] La lista de juegos dice si cada juego está jugado, sin escribirlo a mano.
+- [x] axe-core no reporta violaciones A ni AA en las pantallas de los juegos,
       en ningún estado.
-- [ ] Ninguna palabra, enunciado ni pista está escrito en el código del cliente.
+- [x] Ninguna palabra, enunciado ni pista está escrito en el código del cliente.
 
 ## 5. Dependencias y referencias
 

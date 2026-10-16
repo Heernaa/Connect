@@ -19,14 +19,24 @@
 import { es } from '../i18n/es.js'
 import {
   ApiError,
+  parseAbandon,
   parseApiError,
   parseChatLimits,
   parseChatMessage,
   parseChatMessages,
   parseGameList,
   parseHealth,
+  parseHint,
   parseLeaderboard,
+  parseParaulogicAttempt,
+  parseParaulogicContent,
+  parseRiddleCheck,
+  parseRiddleContent,
+  parseRiddleReport,
+  parseSessionState,
   parseUser,
+  parseWordleAttempt,
+  parseWordleContent,
 } from './validators.js'
 
 export { ApiError }
@@ -47,6 +57,7 @@ const MESSAGES = {
   formUnexpected: es.errors.formUnexpected,
   chatUnavailable: es.errors.chatUnavailable,
   messageRejected: es.errors.messageRejected,
+  gameUnexpected: es.errors.gameUnexpected,
 }
 
 /**
@@ -273,6 +284,108 @@ export function deleteAccount({ signal } = {}) {
   return request('/auth/me', {
     method: 'DELETE',
     fallbackMessage: MESSAGES.formUnexpected,
+    signal,
+  })
+}
+
+// --- Los tres juegos (spec 006 · R-014, R-015, R-017) -----------------------
+
+/**
+ * Contenido de Paraulógic: las letras y cuántas palabras faltan.
+ *
+ * **No lleva sesión.** Las letras son públicas (§2.1.2) y así se puede ver el
+ * juego sin entrar; lo que necesita cuenta es la partida, no el rompecabezas.
+ */
+export function fetchParaulogicContent({ signal } = {}) {
+  return request('/games/paraulogic', { parse: parseParaulogicContent, signal })
+}
+
+/** El progreso guardado de quien está jugando (R-014, §2.1.7). */
+export function fetchParaulogicSession({ signal } = {}) {
+  return request('/games/paraulogic/session', { parse: parseSessionState, signal })
+}
+
+/** Comprueba una palabra. La respuesta decide si es correcta (§6.6). */
+export function submitParaulogicWord({ word, signal } = {}) {
+  return request('/games/paraulogic/attempt', {
+    method: 'POST',
+    parse: parseParaulogicAttempt,
+    fallbackMessage: MESSAGES.gameUnexpected,
+    signal,
+    body: { word },
+  })
+}
+
+/** Una pista. No resta puntos y aquí no se guarda nada (§2.1.5). */
+export function fetchParaulogicHint({ signal } = {}) {
+  return request('/games/paraulogic/hint', { parse: parseHint, signal })
+}
+
+/** La palabra de Wordle. Sale `null` si la partida ya se jugó (§2.1.4). */
+export function fetchWordleContent({ signal } = {}) {
+  return request('/games/wordle', { parse: parseWordleContent, signal })
+}
+
+/** Los intentos ya hechos de Wordle, con su pista de tres letras. */
+export function fetchWordleSession({ signal } = {}) {
+  return request('/games/wordle/session', { parse: parseSessionState, signal })
+}
+
+/** Comprueba un intento y devuelve la pista de cada letra (§2.1.4). */
+export function submitWordleAttempt({ guess, signal } = {}) {
+  return request('/games/wordle/attempt', {
+    method: 'POST',
+    parse: parseWordleAttempt,
+    fallbackMessage: MESSAGES.gameUnexpected,
+    signal,
+    body: { guess },
+  })
+}
+
+/** El enunciado del acertijo. Nunca la respuesta (§2.1.2). */
+export function fetchRiddleContent({ signal } = {}) {
+  return request('/games/riddle', { parse: parseRiddleContent, signal })
+}
+
+/** El estado del acertijo: si ya se acertó y cuántos intentos hubo. */
+export function fetchRiddleSession({ signal } = {}) {
+  return request('/games/riddle/session', { parse: parseSessionState, signal })
+}
+
+/** Comprueba una respuesta. La comparación se hace en el servidor (§2.1.2). */
+export function submitRiddleAnswer({ answer, signal } = {}) {
+  return request('/games/riddle/answer', {
+    method: 'POST',
+    parse: parseRiddleCheck,
+    fallbackMessage: MESSAGES.gameUnexpected,
+    signal,
+    body: { answer },
+  })
+}
+
+/** Registra una respuesta rechazada que la persona cree correcta (R-017). */
+export function reportRiddleAnswer({ givenAnswer, signal } = {}) {
+  return request('/games/riddle/report', {
+    method: 'POST',
+    parse: parseRiddleReport,
+    fallbackMessage: MESSAGES.gameUnexpected,
+    signal,
+    body: { given_answer: givenAnswer },
+  })
+}
+
+/**
+ * Sale de la partida (R-015).
+ *
+ * **Un solo paso, sin confirmación**, y en Wordle avisa antes. `gave_up` dice si
+ * la partida se ha gastado de verdad: quien lo ignore enseñaría un teclado que
+ * ya no sirve (§4.2).
+ */
+export function abandonGame({ gameId, signal } = {}) {
+  return request(`/games/${gameId}/abandon`, {
+    method: 'POST',
+    parse: parseAbandon,
+    fallbackMessage: MESSAGES.gameUnexpected,
     signal,
   })
 }

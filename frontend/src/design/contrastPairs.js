@@ -90,6 +90,59 @@ export const TEXT_PAIRS = [
 ]
 
 /**
+ * Pares de los tres juegos (spec 006 · R-016).
+ *
+ * Van aparte de `TEXT_PAIRS` y de `BORDER_PAIRS` porque su motivo es distinto:
+ * en un juego, un color **es** información —«en su sitio» frente a «no está»— y
+ * por eso cada estado tiene que leerse sin depender del color (§2.1.4). Aquí se
+ * comprueba el par de cada uno, y el glifo que lleva dentro es lo que cubre el
+ * caso de quien no distingue colores (R-004).
+ */
+export const GAME_PAIRS = [
+  // Wordle · estado «en su sitio»
+  ['surface', 'success', 'Letra correcta de Wordle sobre su casilla verde.'],
+  ['surface', 'success', 'Glifo de la leyenda del estado «en su sitio».'],
+  ['surface', 'warning', 'Letra presente pero en otro sitio, sobre su casilla.'],
+  ['surface', 'warning', 'Glifo de la leyenda del estado «está en la palabra».'],
+  ['ink-muted', 'surface-sunken', 'Letra ausente: gris sobre la casilla hundida.'],
+  ['ink', 'surface-sunken', 'Glifo «✗» de la casilla «no está».'],
+
+  // Paraulógic · las casillas de letras y las palabras ya encontradas
+  ['ink', 'surface', 'Cada letra del conjunto, en su casilla.'],
+  ['ink', 'surface-sunken', 'Tecla del teclado virtual que está pulsada.'],
+  ['brand', 'brand-soft', 'Borde de una tecla del teclado al pasar el ratón.'],
+  ['ink', 'accent-1-soft', 'Palabra ya encontrada, sobre su panel verde.'],
+  ['accent-1', 'accent-1-soft', 'Borde de la palabra ya encontrada.'],
+]
+
+/** Contrastes que los juegos necesitan y que no salen de la paleta base. */
+export const GAME_BORDER_PAIRS = [
+  // El borde de las casillas de Wordle. Es lo que dibuja la rejilla cuando
+  // `forced-colors` apaga los fondos, y sin él la rejilla desaparece entera.
+  ['border', 'surface-sunken', 'Borde de una casilla de Wordle sobre la superficie hundida.'],
+  ['success', 'surface-sunken', 'Borde de la casilla «en su sitio».'],
+  ['warning', 'surface-sunken', 'Borde de la casilla «está en la palabra».'],
+  ['border', 'surface', 'Borde de una casilla y de una tecla del teclado, sobre la tarjeta.'],
+]
+
+/**
+ * Colores que **sí** aparecen en los juegos pero que no se comprueban como par.
+ *
+ * `surface-sunken` sobre `surface` da 1.15:1, muy por debajo de 3:1, y es
+ * deliberado: el relleno hundido de la casilla «no está» **no es lo que dibuja
+ * la casilla**, lo es su borde, que sí llega a 3:1 contra la tarjeta (WCAG 1.4.11
+ * habla del límite que identifica el control, no del color de su interior).
+ *
+ * Poner el relleno a un gris lo bastante oscuro para llegar a 3:1 convertiría
+ * el estado «no está» en el más oscuro de los tres, cuando es el que menos
+ *destaca: quien lee la rejilla espera que lo más oscuro sea lo que está mal.
+ *
+ * Lo que sí se comprueba es el texto sobre el relleno (`ink-muted` sobre
+ * `surface-sunken`, 7.21:1) y el glifo, que es lo que distingue el estado sin
+ * depender del color (R-004).
+ */
+
+/**
  * Pares que delimitan un control o dibujan el foco: 3:1 (WCAG 1.4.11).
  */
 export const BORDER_PAIRS = [

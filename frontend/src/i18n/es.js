@@ -179,6 +179,11 @@ export const es = {
     // así; estos son los que nacen en el navegador.
     chatUnavailable: 'No se ha podido cargar el chat. Comprueba tu conexión y vuelve a intentarlo.',
     messageRejected: 'No se ha podido enviar el mensaje. Escríbelo otra vez.',
+    // Los juegos (spec 006 · R-009). Casi ninguno llega a verse: el backend
+    // escribe el motivo concreto («esa palabra usa la letra X») y se enseña tal
+    // cual. Esto es para cuando falla la conexión, que es lo que no tiene arreglo
+    // concreto que escribir.
+    gameUnexpected: 'No se ha podido guardar lo que has escrito. Inténtalo de nuevo.',
     // Un hash desconocido lleva a la portada en lugar de a un error: el
     // producto no puede tener callejones sin salida (§2.1.6).
   },
@@ -272,6 +277,127 @@ export const es = {
     confirm: 'Sí, borrar mi cuenta',
     confirming: 'Borrando…',
     done: 'Tu cuenta se ha borrado.',
+  },
+
+  /** LOS TRES JUEGOS (spec 006 · R-014 a R-016)
+   *
+   *  Aquí no se escribe ni una palabra de juego, ni un enunciado, ni una pista:
+   *  todo eso lo sirve la API (§2.1.2). Solo los rótulos de la interfaz, que son
+   *  de este proyecto.
+   */
+  games_ui: {
+    play: 'Jugar',
+    resume: 'Seguir jugando',
+    leave: 'Salir de la partida',
+    leaving: 'Saliendo…',
+    left: 'Has salido de la partida. Tu progreso se queda guardado.',
+    backToGames: 'Volver a los juegos',
+    signedInRequired: 'Para jugar necesitas una cuenta.',
+    signedInRequiredAction: 'Entra o crea una cuenta y vuelve aquí.',
+    yourScore: 'Tus puntos: {points}',
+  },
+
+  /** Paraulógic (§2.1.4: intentos ilimitados, no se puede perder) */
+  paraulogic: {
+    heading: 'Paraulógic',
+    intro:
+      'Estas letras, colocadas de otra manera, forman varias palabras. Intenta encontrarlas todas. Puedes probar tantas veces como quieras: aquí no se pierde.',
+    lettersHeading: 'Las letras',
+    // Se dice que es un conjunto, no una lista, porque el orden no importa. Es la
+    // diferencia entre «esto se lee de arriba abajo» y «esto se combina».
+    lettersHelp: 'Estas son todas las letras que hay. Puedes usarlas en cualquier orden.',
+    writeLabel: 'Escribe una palabra',
+    writePlaceholder: 'Por ejemplo, una palabra de seis letras',
+    submit: 'Comprobar la palabra',
+    checking: 'Comprobando…',
+    correct: '¡Muy bien! Has encontrado {word}.',
+    incorrect: 'Esa palabra no está en el conjunto. Prueba otra: no pasa nada por fallar.',
+    foundHeading: 'Palabras encontradas ({count})',
+    foundEmpty: 'Todavía no has encontrado ninguna palabra.',
+    foundOne: 'Has encontrado 1 palabra.',
+    pending: 'Quedan {count} palabras por encontrar.',
+    allFound: '¡Las has encontrado todas! No queda ninguna.',
+    hintButton: 'Pedir una pista',
+    hintLoading: 'Buscando una pista…',
+    // Se dice que **no resta puntos** en el propio botón. Quien tiene miedo a
+    // perder puntos (y a esta edad es un miedo razonable) no lo pulsaría si
+    // tuviera que averiguarlo (§2.1.5).
+    hintButtonHint: 'La pista no te resta puntos.',
+    hintLength: 'Una de las palabras que te faltan tiene {count} letras.',
+    hintCommon: 'Esta pista es de una palabra bastante común.',
+    hintHard: 'Esta pista es de una palabra poco común.',
+  },
+
+  /** Wordle (§2.1.4: una sola partida, tres pistas por letra) */
+  wordle: {
+    heading: 'Wordle',
+    intro:
+      'Adivina la palabra de cinco letras. Tienes seis intentos y solo puedes jugar una vez, así que tómate tu tiempo.',
+    gridHeading: 'Tus intentos',
+    attemptsHeading: 'Intentos usados: {used} de {max}',
+    writeLabel: 'Escribe tu intento',
+    writePlaceholder: 'Cinco letras',
+    writeHint: 'Todavía no has escrito ningún intento.',
+    submit: 'Comprobar el intento',
+    checking: 'Comprobando…',
+    tooShort: 'Escribe cinco letras.',
+    tooLong: 'Has escrito más de cinco letras.',
+    notLetters: 'Solo se pueden escribir letras.',
+    // Las tres pistas. El texto es lo que lee un lector de pantalla y lo que ve
+    // quien no distingue colores; el icono es la señal redundante (R-004).
+    feedbackCorrect: 'En su sitio',
+    feedbackPresent: 'Está en la palabra, en otro orden',
+    feedbackAbsent: 'No está en la palabra',
+    solved: '¡Lo has alcanzado! Era {word}.',
+    attemptsLeft: 'Te quedan {count} intentos.',
+    outOfAttempts: 'Se te han acabado los intentos. La palabra era {word}.',
+    alreadyPlayed: 'Ya has jugado tu partida de Wordle. Puedes ver cómo te fue.',
+    showResult: 'Ver el resultado',
+    resultHeading: 'Tu resultado',
+    resultSolvedIn: 'La acertaste en el intento {number}.',
+    resultNotSolved: 'Esta vez no la has acertado.',
+    // El aviso de abandonar. Es la **única** acción del proyecto que no se
+    // puede deshacer, y por eso el aviso va en el botón y no en un diálogo
+    // después (R-015, §4.2).
+    leaveWarning: 'Si sales, se acaba tu partida y no podrás volver a jugar.',
+    letters: 'Letras',
+    keyboardHeading: 'Teclado',
+    keyboardKey: 'Escribir la letra {letter}',
+    keyboardBackspace: 'Borrar la última letra',
+    keyboardSubmit: 'Comprobar el intento',
+  },
+
+  /** Acertijo (§2.1.4: una respuesta, sin penalización por fallar) */
+  riddle: {
+    heading: 'Acertijo',
+    intro: 'Lee la pregunta y escribe la respuesta que estés pensando. Fallar no resta nada.',
+    questionHeading: 'La pregunta',
+    answerLabel: 'Tu respuesta',
+    answerPlaceholder: 'Escribe aquí lo que pienses',
+    submit: 'Comprobar la respuesta',
+    checking: 'Comprobando…',
+    correct: '¡Correcto! Has acertado y sumas {points} puntos.',
+    incorrect: 'No es esa. Vuelve a pensarlo: fallar no te resta nada.',
+    solvedHeading: 'Ya lo has acertado',
+    solvedText: 'La respuesta era {answer}.',
+    attemptsHeading: 'Respuestas que has escrito: {count}',
+    // Se dice que no resta puntos **antes** de responder, no después. Quien
+    // tema que equivocarse le cueste algo no llega a intentarlo (§2.1.5).
+    noPenalty: 'Puedes escribir tantas respuestas como quieras: no te restan puntos.',
+  },
+
+  /** Reporte de acertijo (§2.1.4, spec 006 · R-017) */
+  report: {
+    button: 'Creo que la respuesta era correcta',
+    // El aviso se enseña antes del botón de confirmar, no después. La
+    // constitución dice que el reporte NO da puntos, y no decirlo dejaría a la
+    // persona pensando que es una forma de conseguir puntos (§4.2).
+    noPointsWarning: 'Enviarlo no te da puntos. Solo sirve para que lo revisemos.',
+    formLabel: '¿Qué respuesta habías puesto?',
+    submit: 'Enviar el reporte',
+    sending: 'Enviando…',
+    done: 'Gracias. Hemos guardado lo que escribiste para revisarlo. Esto no te da puntos, pero sirve para arreglarlo.',
+    undoHint: 'Puedes seguir jugando con normalidad.',
   },
 
   /** Páginas que aún no están hechas. */

@@ -12,6 +12,8 @@ import { describe, expect, it } from 'vitest'
 import {
   BORDER_PAIRS,
   DECORATIVE_ONLY,
+  GAME_BORDER_PAIRS,
+  GAME_PAIRS,
   HALO_PAIRS,
   LARGE_OR_BORDER_CONTRAST,
   TEXT_CONTRAST,
@@ -105,6 +107,13 @@ describe('contraste de la paleta (R-003)', () => {
   const borderResults = checkPairs(BORDER_PAIRS, LARGE_OR_BORDER_CONTRAST)
   const haloResults = checkPairs(HALO_PAIRS, LARGE_OR_BORDER_CONTRAST)
 
+  // Los juegos (spec 006 · R-016). En un juego el color **es** información, así
+  // que se comprueban con el mismo umbral que el resto del texto: 4.5:1. Un
+  // estado que solo llegue a 3:1 se leería bien con el texto grande de una
+  // casilla y mal con el de otra, y quien pierde es quien lee más pequeño.
+  const gameResults = checkPairs(GAME_PAIRS, TEXT_CONTRAST)
+  const gameBorderResults = checkPairs(GAME_BORDER_PAIRS, LARGE_OR_BORDER_CONTRAST)
+
   it.each(textResults)(
     'texto normal: $label da $measured:1 y necesita $minimum:1',
     ({ measured, minimum }) => {
@@ -126,8 +135,28 @@ describe('contraste de la paleta (R-003)', () => {
     },
   )
 
+  it.each(gameResults)(
+    'los juegos: $label da $measured:1 y necesita $minimum:1',
+    ({ measured, minimum }) => {
+      expect(measured).toBeGreaterThanOrEqual(minimum)
+    },
+  )
+
+  it.each(gameBorderResults)(
+    'los juegos, borde: $label da $measured:1 y necesita $minimum:1',
+    ({ measured, minimum }) => {
+      expect(measured).toBeGreaterThanOrEqual(minimum)
+    },
+  )
+
   it('ningún par queda por debajo de su umbral', () => {
-    const failures = [...textResults, ...borderResults, ...haloResults].filter(
+    const failures = [
+      ...textResults,
+      ...borderResults,
+      ...haloResults,
+      ...gameResults,
+      ...gameBorderResults,
+    ].filter(
       ({ measured, minimum }) => measured < minimum,
     )
 
@@ -141,7 +170,7 @@ describe('contraste de la paleta (R-003)', () => {
   })
 
   it('ningún par de la tabla repite el mismo token dos veces', () => {
-    const broken = [...TEXT_PAIRS, ...BORDER_PAIRS, ...HALO_PAIRS].filter(
+    const broken = [...TEXT_PAIRS, ...BORDER_PAIRS, ...HALO_PAIRS, ...GAME_PAIRS].filter(
       ([foreground, background]) => foreground === background,
     )
 

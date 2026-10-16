@@ -58,6 +58,11 @@
   /* Superficies y texto */
   --color-page: #f7f9fa; /* texto 16.98:1 encima */
   --color-surface: #ffffff;
+  /* Superficie hundida: un paso por debajo de la tarjeta. La usan las casillas
+     de Wordle en el estado «no está», que es un estado **neutro** y no un error:
+     con el mismo blanco que las otras dos, las tres se leerían como si fueran
+     casillas vacías esperando algo (spec 006 · R-016). */
+  --color-surface-sunken: #eceff1;
   --color-ink: #11181c; /* 16.98:1 sobre --color-page */
   --color-ink-muted: #4a5560; /* 7.21:1 sobre --color-page */
   /* La banda de cabecera. Se llama `band` y no `nav` a propósito: con
@@ -726,5 +731,211 @@
 
   .ui-button--danger:active:not(:disabled) {
     scale: 0.96;
+  }
+
+  /* --- Los tres juegos (spec 006 · R-016) -----------------------------------
+     Los patrones visuales nuevos van aquí y en `contrastPairs.js`, no dentro del
+     componente (§3.3). Un juego que trae su propio color suelto acaba siendo el
+     primero que se salta el test de contraste. */
+
+  /* Las letras de Paraulógic. `flex-wrap` para que a 360px bajen a otra fila en
+     vez de provocar scroll horizontal (R-010). */
+  .ui-letter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .ui-letter-tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Con la fuente al 200% una casilla fija se quedaría corta y la letra se
+       saldría. Se usa `min-block-size`, no `block-size`. */
+    min-block-size: 3rem;
+    min-inline-size: 3rem;
+    padding: 0.25rem 0.5rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  /* Una palabra ya encontrada. El fondo verde con la casilla lenta significaría
+     «esto está bien», que es justo lo que es (§2.1.5). */
+  .ui-found-word {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--color-accent-1);
+    border-radius: var(--radius-control);
+    background-color: var(--color-accent-1-soft);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    text-transform: uppercase;
+    /* `overflow-wrap` por si una palabra se hace más ancha que la pantalla al
+       subir el tamaño de fuente. */
+    overflow-wrap: anywhere;
+  }
+
+  /* La leyenda de Wordle: los tres estados, con su glifo y su texto. */
+  .ui-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    list-style: none;
+  }
+
+  .ui-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-base);
+  }
+
+  /* El glifo va dentro de una caja con el fondo del estado, para que se lea
+     igual que las casillas del juego. Con `forced-colors` el fondo desaparece y
+     queda el glifo, que es lo que tiene que funcionar solo (R-004). */
+  .ui-legend__glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border: 2px solid currentColor;
+    border-radius: var(--radius-control);
+    font-weight: 700;
+  }
+
+  /* La rejilla de intentos. Cada intento es una fila de cinco casillas. */
+  .ui-attempts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    list-style: none;
+  }
+
+  .ui-wordle-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+  }
+
+  /*
+   * La casilla de una letra.
+
+   * El tamaño es `min-`, no fijo: con la fuente al 200% una casilla de 3rem se
+   * quedaría corta y la letra tocaría el borde (R-010).
+
+   * Los tres estados se distinguen por **tres** cosas a la vez —fondo, color y,
+   * sobre todo, el glifo que va dentro—. El color solo no basta: quien no
+   * distingue rojo y verde vería dos casillas iguales (§2.1.4, R-004).
+   */
+  .ui-wordle-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.125rem;
+    min-inline-size: 3.5rem;
+    min-block-size: 4rem;
+    padding: 0.375rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface);
+  }
+
+  .ui-wordle-cell__letter {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .ui-wordle-cell__glyph {
+    font-size: var(--text-base);
+    line-height: 1;
+  }
+
+  /* En su sitio. Verde profundo con texto blanco: 7.13:1, comprobado en
+     `contrastPairs.js`. */
+  .ui-wordle-cell[data-state='correct'],
+  .ui-legend__item[data-state='correct'] .ui-legend__glyph {
+    background-color: var(--color-success);
+    border-color: var(--color-success);
+    color: var(--color-surface);
+  }
+
+  /* Está en la palabra, en otro orden. Mismo criterio: el color no basta solo,
+     el glifo «◐» es la segunda señal. */
+  .ui-wordle-cell[data-state='present'],
+  .ui-legend__item[data-state='present'] .ui-legend__glyph {
+    background-color: var(--color-warning);
+    border-color: var(--color-warning);
+    color: var(--color-surface);
+  }
+
+  /* No está en la palabra. Gris: es un estado neutro, no un error, y con fondo
+     claro para que la rejilla no parezca una escalera de semáforos. */
+  .ui-wordle-cell[data-state='absent'],
+  .ui-legend__item[data-state='absent'] .ui-legend__glyph {
+    background-color: var(--color-surface-sunken);
+    border-color: var(--color-border);
+    color: var(--color-ink-muted);
+  }
+
+  /*
+   * El teclado en pantalla.
+   *
+   * `auto-fit` con un mínimo de 44px: en un móvil de 360px caben las 26 letras
+   * en cinco filas de 44px, y en un ordenador se reparten en tres filas anchas.
+   * Con un tamaño fijo de 44px se verían minúsculas en pantallas grandes, que es
+   * justo lo contrario de lo que necesita quien tiene la vista cansada.
+   */
+  .ui-keyboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(2.75rem, 1fr));
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .ui-key {
+    min-block-size: var(--spacing-target);
+    min-inline-size: var(--spacing-target);
+    padding: 0.5rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: inherit;
+    font-size: var(--text-lg);
+    font-weight: 700;
+    cursor: pointer;
+    transition-property: background-color, scale;
+    transition-duration: var(--duration-press);
+    transition-timing-function: var(--ease-ui);
+  }
+
+  @media (hover: hover) {
+    .ui-key:hover:not(:disabled) {
+      background-color: var(--color-brand-soft);
+    }
+  }
+
+  .ui-key:active:not(:disabled) {
+    scale: 0.96;
+  }
+
+  .ui-key:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  /* La tecla de borrar ocupa dos columnas: es más grande que las letras porque se
+     pulsa bastante más y un error ahí cuesta un intento entero. */
+  .ui-key--wide {
+    grid-column: span 2;
   }
 }

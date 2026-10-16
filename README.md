@@ -130,7 +130,7 @@ cualquier otra instrucción.
 | [003](Docs/specs/003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | **Implementada** |
 | [004](Docs/specs/004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | **Implementada** |
 | [005](Docs/specs/005-persistencia-partidas/) | Persistencia de partidas | Guardado y restauración de progreso, puntuación | **Implementada** |
-| [006](Docs/specs/006-frontend-accesible/) | Frontend accesible | Tokens de diseño, teclado, diccionario y **los tres juegos** | En implementación |
+| [006](Docs/specs/006-frontend-accesible/) | Frontend accesible | Tokens de diseño, teclado, diccionario y **los tres juegos** | **Implementada** |
 | [007](Docs/specs/007-clasificacion-y-chat/) | Clasificación y chat | Leaderboard, chat por polling, bloqueo | **Implementada** |
 | [008](Docs/specs/008-e2e-y-accesibilidad/) | E2E y accesibilidad | Playwright en tres dispositivos, auditoría WCAG | Planificada |
 
@@ -158,16 +158,15 @@ justificarlo (`spec 001 · R-007`).
 
 ## 🚀 Puesta en marcha
 
-> **Estado actual: specs 001 a 005 y 007 implementadas; 006 en curso.** El
-> proyecto arranca con un solo comando y tiene la API completa de los tres
-> juegos —cuentas, sesiones, contenido y puntuación validada en el servidor—,
-> la interfaz base accesible y la parte social: clasificación, chat, bloqueo y
-> borrado de cuenta.
+> **Estado actual: specs 001 a 007 implementadas.** El proyecto arranca con un
+> solo comando y está **jugable de principio a fin**: los tres juegos con su
+> interfaz, la API que valida y puntúa en el servidor, la parte social
+> (clasificación, chat, bloqueo) y el sistema de diseño accesible del que todo lo
+> demás hereda.
 >
-> **En marcha:** las pantallas de Paraulógic, Wordle y Acertijo. La spec 006 se
-> amplió para incluirlas, junto con el botón «Saltar partida» y el reporte de
-> respuesta correcta rechazada, que la constitución exigía desde el principio y
-> que ninguna spec había cubierto.
+> Queda la **spec 008**: los recorridos E2E completos y la auditoría en los tres
+> dispositivos. Ya no está bloqueada —las pantallas de los juegos existen— pero
+> es el siguiente paso.
 
 **Requisitos:** Docker y Docker Compose. **Ninguna credencial externa es
 necesaria** (§7.0). El proyecto vive en local y no se despliega.

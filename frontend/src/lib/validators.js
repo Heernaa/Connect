@@ -68,9 +68,22 @@ export function parseHealth(payload, messages) {
   return { status, database }
 }
 
-/** Un juego del catálogo: `{ gameId, name, description }`. */
+/**
+ * Un juego del catálogo: `{ game_id, name, description, played, score }`.
+ *
+ * `played` y `score` los añade la spec 006 · R-018. Sin sesión llegan como
+ * `false` y `0`, que es lo correcto: el estado de una partida es de la cuenta,
+ * no del juego. Se validan igualmente, para que un cambio en el servidor no
+ * acabe pintando un «nan» o un objeto donde va un número (R-013).
+ */
 export function parseGameSummary(payload, messages) {
   if (!isPlainObject(payload)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  const score = payload.score
+
+  if (typeof score !== 'number' || !Number.isFinite(score)) {
     throw new ApiError(messages.contentUnexpected)
   }
 
@@ -78,6 +91,8 @@ export function parseGameSummary(payload, messages) {
     gameId: requireText(payload.game_id, 'game_id', messages.contentUnexpected),
     name: requireText(payload.name, 'name', messages.contentUnexpected),
     description: requireText(payload.description, 'description', messages.contentUnexpected),
+    played: payload.played === true,
+    score,
   }
 }
 
@@ -242,4 +257,194 @@ export function parseChatLimits(payload, messages) {
   }
 
   return { maxLength: payload.max_length }
+}
+
+/*
+ * Los juegos (spec 006 · R-014).
+ *
+ * El mismo criterio que en el resto del archivo: se comprueba **la forma** de lo
+ * que llega antes de usarlo para pintar. Aquí importa más que en ningún otro sitio
+ * por una razón concreta: `GET /api/games/wordle` devuelve `word: null` cuando
+ * la partida ya está jugada, y `pending_count` es `0` cuando no falta nada. Si
+ * `null` y `0` se trataran como «falta el dato», la pantalla enseñaría
+ * «Cargando…» para siempre justo en los dos casos en los que el juego ya ha
+ * terminado.
+ */
+
+/** Contenido de Paraulógic: `{ letters, pending_count }`. */
+export function parseParaulogicContent(payload, messages) {
+  if (!isPlainObject(payload)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  const pending = payload.pending_count
+
+  if (typeof pending !== 'number' || !Number.isFinite(pending)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  return {
+    // `letters` es el conjunto de letras del puzzle. Si viniera vacío no se
+    // puede jugar, y eso es un fallo del servidor, no una partida terminada.
+    letters: requireText(payload.letters, 'letters', messages.contentUnexpected),
+    pendingCount: pending,
+  }
+}
+
+/** El estado de una partida: el mismo modelo para los tres juegos. */
+export function parseSessionState(payload, messages) {
+  if (!isPlainObject(payload)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  const attempts = Array.isArray(payload.attempts) ? payload.attempts : []
+  const foundWords = Array.isArray(payload.found_words) ? payload.found_words : []
+
+  return {
+    gameId: requireText(payload.game_id, 'game_id', messages.contentUnexpected),
+    // Los tres estados que el servidor puede enviar. Un cuarto estado —por
+    // ejemplo `lost`— sería un estado que el producto no tiene (§2.1.4) y la
+    // pantalla no sabría pintarlo.
+    status: ['active', 'finished', 'abandoned'].includes(payload.status)
+      ? payload.status
+      : 'active',
+    attemptsUsed: typeof payload.attempts_used === 'number' ? payload.attempts_used : 0,
+    maxAttempts: typeof payload.max_attempts === 'number' ? payload.max_attempts : 6,
+    attempts: attempts.map((attempt) => parseWordleAttempt(attempt, messages)),
+    foundWords: foundWords.filter((word) => typeof word === 'string'),
+    pendingCount: typeof payload.pending_count === 'number' ? payload.pending_count : 0,
+    solved: payload.solved === true,
+    score: typeof payload.score === 'number' ? payload.score : 0,
+  }
+}
+
+/** Un intento de Wordle con su pista de tres letras. */
+export function parseWordleAttempt(payload, messages) {
+  if (!isPlainObject(payload)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  const feedback = Array.isArray(payload.feedback) ? payload.feedback : []
+  const allowed = ['correct', 'present', 'absent']
+
+  // Una pista con un valor que no se reconoce es peor que no tener pista: la
+  // casilla se pintaría sin estilo y sin texto, y sería un estado que nadie ha
+  // visto redactado (§2.1.4).
+  const valid = feedback.filter((value) => allowed.includes(value))
+
+  return {
+    attemptNumber: typeof payload.attempt_number === 'number' ? payload.attempt_number : 0,
+    guess: requireText(payload.guess, 'guess', messages.contentUnexpected),
+    feedback: valid,
+    solved: payload.solved === true,
+    score: typeof payload.score === 'number' ? payload.score : 0,
+  }
+}
+
+/** Resultado de comprobar una palabra de Paraulógic. */
+export function parseParaulogicAttempt(payload, messages) {
+  if (!isPlainObject(payload)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  return {
+    isCorrect: payload.is_correct === true,
+    score: typeof payload.score === 'number' ? payload.score : 0,
+    // `correct_word` solo viene cuando `is_correct` es `true`. Ausente o `null`
+    // significan lo mismo y se normalizan igual, por el mismo motivo que
+    // `game_id`: aceptar solo uno dejaría que un cambio del servidor rompiera
+    // la pantalla sin avisar (R-013).
+    correctWord: typeof payload.correct_word === 'string' ? payload.correct_word : null,
+    foundWords: typeof payload.found_words === 'number' ? payload.found_words : 0,
+  }
+}
+
+/** Una pista de Paraulógic. */
+export function parseHint(payload, messages) {
+  if (!isPlainObject(payload)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  const length = payload.word_length
+
+  if (typeof length !== 'number') {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  return {
+    hintText: requireText(payload.hint_text, 'hint_text', messages.contentUnexpected),
+    wordLength: length,
+    isCommon: payload.is_common === true,
+  }
+}
+
+/** La palabra de Wordle. `word` es `null` si la partida ya se jugó (R-014). */
+export function parseWordleContent(payload, messages) {
+  if (!isPlainObject(payload)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  const word = payload.word
+
+  if (word !== null && typeof word !== 'string') {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  return { word, alreadyFinished: payload.already_finished === true }
+}
+
+/** El enunciado del acertijo. Nunca la respuesta (§2.1.2). */
+export function parseRiddleContent(payload, messages) {
+  if (!isPlainObject(payload)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  return {
+    question: requireText(payload.question, 'question', messages.contentUnexpected),
+  }
+}
+
+/** Resultado de comprobar una respuesta de acertijo. */
+export function parseRiddleCheck(payload, messages) {
+  if (!isPlainObject(payload)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  return {
+    isCorrect: payload.is_correct === true,
+    attemptsUsed: typeof payload.attempts_used === 'number' ? payload.attempts_used : 0,
+  }
+}
+
+/** Salir de la partida: `{ game_id, gave_up, message }` (R-015). */
+export function parseAbandon(payload, messages) {
+  if (!isPlainObject(payload)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  return {
+    gameId: requireText(payload.game_id, 'game_id', messages.contentUnexpected),
+    // `gave_up` decide si la interfaz tiene que **dejar de pintar el juego**. En
+    // Wordle significa que la única partida se ha gastado, y seguir enseñando el
+    // teclado sería prometer algo que ya no existe (§4.2).
+    gaveUp: payload.gave_up === true,
+    message: requireText(payload.message, 'message', messages.contentUnexpected),
+  }
+}
+
+/** Confirmación del reporte de acertijo (R-017). */
+export function parseRiddleReport(payload, messages) {
+  if (!isPlainObject(payload)) {
+    throw new ApiError(messages.contentUnexpected)
+  }
+
+  return {
+    reportId: typeof payload.report_id === 'number' ? payload.report_id : 0,
+    givenAnswer: requireText(payload.given_answer, 'given_answer', messages.contentUnexpected),
+    // El servidor lo afirma explícitamente. Se lee, no se deduce: si el campo
+    // desapareciera, `false` seguiría siendo la respuesta conservadora, y eso
+    // es lo que queremos para no prometer puntos que no se han dado.
+    gavePoints: payload.gave_points === true,
+    message: requireText(payload.message, 'message', messages.contentUnexpected),
+  }
 }
