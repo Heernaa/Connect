@@ -6,74 +6,150 @@
 @import '@fontsource-variable/inter/wght.css';
 
 /* ---------------------------------------------------------------------------
-   Tokens de diseño
+   Tokens de diseño — R-001 a R-004
    ---------------------------------------------------------------------------
-   Origen: el diseño de Connect en Figma, adaptado a WCAG 2.2 AA (§4).
+   Origen: el diseño de Connect en Figma («Abuelos»), adaptado a WCAG 2.2 AA
+   (§4). La explicación completa está en `Docs/sistema-diseno.md`.
 
-   Lo que se mantiene del diseño: la barra de navegación en cian `#AAFFFF`, la
-   tipografía Inter, la escala tipográfica grande (48px en la navegación) y el
-   radio redondeado de 16px en las tarjetas.
+   **LO QUE SE MANTIENE DE FIGMA**
 
-   Lo que se cambia, y por qué: los colores que fallan el contraste de 4.5:1.
-     · Verde de tarjeta  #00C000 sobre blanco = 2.46:1  →  #166534 = 7.13:1
-     · Rojo de botón     #FF0000 sobre blanco = 4.00:1  →  #B3261E = 6.54:1
-     · Gris de borde     #9AA5AD sobre blanco = 2.51:1  →  #6B7680 = 4.64:1
-   Se conserva la forma y el color de marca; cambia el valor para que el texto
-   se pueda leer. Cada ratio está anotado junto a su token.
+     · La banda de navegación en cian `#AAFFFF`, con su radio de 16px.
+     · La tipografía Inter, y su generosidad: 48px en la navegación, 24px en las
+       descripciones.
+     · Los radios grandes: 24px en las tarjetas, 12px en los controles.
+     · El aire: huecos de 24px, `gap-x 48px` en la cabecera.
+
+   **LO QUE CAMBIA, Y POR QUÉ**
+
+   Figma usa blanco sobre verde neón en las tarjetas, y eso es ilegible:
+
+     · Verde `#00C000` con blanco = 2.46:1  →  `#15803D` = 5.02:1
+     · Teal  `#00BDC0` con blanco = 2.32:1  →  `#0F6E75` = 5.99:1
+
+   Se conserva el color, que es lo que da carácter a cada juego; cambia la
+   intensidad hasta que el texto encima se pueda leer.
+
+   Y hay un motivo menos visible: **el anillo de foco azul `#0B5FFF` sobre una
+   tarjeta de verde profundo daba 1.02:1**, y sobre teal 1.17:1. El foco se
+   habría perdido dentro de la tarjeta. Por eso el color va en una banda de
+   acento y la tarjeta es clara: el foco siempre cae sobre fondo claro y siempre
+   llega al 4.51:1 mínimo.
+
+   **NINGÚN RATIO DE ESTE ARCHIVO SE ESTIMA A OJO** (R-003). El contraste lo
+   mide `src/design/contrast.test.js`, que lee estos mismos tokens y falla si
+   algún par baja del umbral. Si se toca un color, ese test lo detecta: la
+   tabla de `src/design/contrastPairs.js` va antes que este archivo.
    --------------------------------------------------------------------------- */
 @theme {
   --font-sans:
     'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  /* Fuente base 16px. Todas las medidas usan rem, así que el zoom del
+  /* Fuente base 16px (R-001). Todas las medidas usan rem, así que el zoom del
      navegador al 200% (WCAG 1.4.4, §4.1) escala el texto y los espacios. */
   --text-base: 1rem;
   --text-lg: 1.125rem;
   --text-xl: 1.25rem;
   --text-2xl: 1.5rem;
   --text-3xl: 1.875rem;
-  --text-nav: 3rem; /* 48px: el tamaño de la navegación en Figma */
+  --text-body: 1.5rem; /* 24px: la descripción en Figma, y se mantiene */
+  --text-display: 2.5rem; /* 40px: el título de tarjeta */
+  --text-nav: 3rem; /* 48px: la navegación en Figma, y se mantiene */
 
   /* Superficies y texto */
-  --color-page: #f2f4f5;
+  --color-page: #f7f9fa; /* texto 16.98:1 encima */
   --color-surface: #ffffff;
-  --color-ink: #11181c; /* 16.25:1 sobre --color-page */
-  --color-ink-muted: #4a5560; /* 6.90:1 sobre --color-page */
-  --color-nav: #aaffff; /* Figma. Negro sobre este color: 18.46:1 */
-  --color-nav-ink: #11181c;
+  --color-ink: #11181c; /* 16.98:1 sobre --color-page */
+  --color-ink-muted: #4a5560; /* 7.21:1 sobre --color-page */
+  /* La banda de cabecera. Se llama `band` y no `nav` a propósito: con
+     `--color-nav` y `--text-nav` a la vez, Tailwind v4 resuelve el nombre
+     `text-nav` de forma ambigua y `sm:text-nav` compilaba a
+     `color: var(--color-nav)`. El logotipo quedaba cian sobre cian, invisible.
+     Dos namespaces de `@theme` no pueden llamarse igual: uno es tipografía y
+     el otro color. */
+  --color-band: #aaffff; /* Figma. Casi negro encima: 15.76:1 */
+  --color-band-ink: #11181c;
 
   /* Marca y acciones */
   --color-brand: #00626b; /* 7.10:1 con texto blanco */
   --color-brand-strong: #00505a; /* hover: 9.15:1 con texto blanco */
   --color-success: #166534; /* 7.13:1 con texto blanco */
   --color-danger: #b3261e; /* 6.54:1 con texto blanco */
+  --color-warning: #8a5300; /* 6.33:1 con texto blanco, 5.81:1 sobre su fondo suave */
 
-  /* Bordes: 4.64:1 sobre blanco. Los controles necesitan 3:1 mínimo. */
+  /* Acentos de tarjeta: uno por juego.
+     En Figma el relleno era verde neón con texto blanco encima (2.46:1). Aquí
+     el mismo verde, profundizado. El color es decorativo —no codifica
+     información—, así que no necesita etiqueta ni leyenda (R-004). */
+  --color-accent-1: #15803d; /* verde Figma. Blanco encima: 5.02:1 */
+  --color-accent-2: #0f6e75; /* teal Figma. Blanco encima: 5.99:1 */
+  --color-accent-3: #00626b; /* azul de marca. Blanco encima: 7.10:1 */
+
+  /* Fondos suaves: paneles informativos, pistas y el interior de los acentos. */
+  --color-brand-soft: #e0f2f3;
+  --color-warning-soft: #fff4e0;
+  --color-accent-1-soft: #edf8f0; /* acento 4.61:1 encima */
+  --color-accent-2-soft: #e4f2f3; /* acento 5.22:1 encima */
+
+  /* Bordes: 4.64:1 sobre blanco. Los controles necesitan 3:1 mínimo.
+     `--color-border-soft` es un separador decorativo y NO se usa para delimitar
+     un control: a propósito queda por debajo de 3:1, y el test lo excluye con
+     un motivo escrito, en vez de subirlo y convertir cada separador en un borde
+     grueso (R-003). */
   --color-border: #6b7680;
   --color-border-soft: #d7dde1;
 
-  /* Foco: anillo de dos tonos, claro dentro y oscuro fuera. Un solo color no
-     se ve sobre el cian ni sobre el verde de tarjeta, así que se usan los dos. */
-  --color-focus-ring: #0b5fff; /* 5.13:1 sobre blanco */
+  /* Foco: anillo de dos tonos, claro dentro y oscuro fuera (R-005). Un solo
+     color no se ve sobre el cian de la navegación ni sobre un botón oscuro, así
+     que se usan los dos. El oscuro es el que marca el límite: 4.86:1 sobre la
+     página, 4.51:1 sobre el cian y 5.13:1 sobre blanco. */
+  --color-focus-ring: #0b5fff;
   --color-focus-halo: #ffffff;
 
-  /* Radios. Radio exterior = radio interior + padding de la capa (§Better UI). */
-  --radius-card: 1rem; /* 16px: el radio de las tarjetas en Figma */
-  --radius-inner: 0.25rem; /* 4px, con 12px de padding: 4 + 12 = 16 */
-  --radius-control: 0.75rem;
+  /* Radios. Todos vienen de Figma: 24px en las tarjetas, 12px en los controles
+     y en las imágenes, 16px en la banda de cabecera. */
+  --radius-card: 1.5rem; /* 24px: el radio de las tarjetas en Figma */
+  --radius-media: 0.75rem; /* 12px: el radio de la imagen en Figma */
+  --radius-control: 0.75rem; /* 12px */
+  --radius-band: 1rem; /* 16px: el radio de la cabecera en Figma */
+  --radius-inner: 0.75rem; /* 12px: con 12px de padding, 12 + 12 = 24 = --radius-card */
 
   /* Movimiento */
   --duration-press: 150ms;
   --duration-enter: 300ms;
   --ease-ui: cubic-bezier(0.2, 0, 0, 1);
 
-  /* Objetivo táctil mínimo (§4.1). */
-  --spacing-target: 2.75rem; /* 44px */
+  /* Objetivo táctil mínimo de 44×44px, en rem para que crezca con el texto
+     (R-002). Todos los controles usan `--spacing-target` en min-height y
+     min-width: el test de Playwright lo comprueba sobre el navegador real. */
+  --spacing-target: 2.75rem; /* 44px a fuente base */
 }
 
 @layer base {
+  /* R-001: el tamaño de fuente elegido por la persona se aplica aquí, como
+     multiplicador del 100% del navegador. Se escribe en el atributo inline de
+     `<html>` **antes** de pintar React, para que no haya un parpadeo con el
+     tamaño viejo al recargar. */
   html {
-    font-size: 100%;
+    font-size: calc(100% * var(--font-scale, 1));
+  }
+
+  /* La navegación crece con el ancho Y con la fuente, sin ninguno de los dos
+     romper al otro. Es el único punto donde hace falta una fórmula en vez de un
+     valor fijo, y está aquí porque en cualquier otro sitio sobra.
+
+     · En un móvil de 360px la palabra más larga —«Clasificación»— con 48px de
+       Figma no cabe ni con el texto al 100%. A 1920px, donde se diseñó Figma,
+       sobra sitio de sobra.
+     · Con el texto al 200% el problema se duplica, y entonces una palabra de
+       40px empuja el enlace fuera de la banda.
+     · `clamp()` mezcla `rem` (que sí escala con la fuente de la persona) y
+       `vw` (que responde al ancho). Los dos métodos por separado fallan: solo
+       `rem` desborda en móvil, solo `vw` no crece con el texto.
+
+     El mínimo son 18px, que es el tamaño de lectura mínima de la constitución
+     (§4.1); el máximo son los 48px de Figma. */
+  :root {
+    --text-nav-scale: clamp(1.125rem, 0.5rem + 2.2vw, 3rem);
   }
 
   body {
@@ -82,7 +158,14 @@
     font-family: var(--font-sans);
     font-size: var(--text-base);
     line-height: 1.5;
+    /* R-010: una palabra larga —una contraseña, un alias— no puede crear una
+       barra de scroll horizontal a 360px ni al 200% de zoom. */
+    overflow-wrap: break-word;
   }
+
+  /* `overflow-x: hidden` está expresamente prohibido: oculta el desbordamiento
+     en lugar de arreglarlo y deja el contenido recortado sin poder leerlo. El
+     reflow se resuelve con anchos fluidos y `overflow-wrap`. */
 
   /* Foco visible en TODO lo que recibe foco. El halo claro va pegado al
      elemento y el anillo oscuro por fuera: se ve tanto sobre fondos claros
@@ -103,8 +186,42 @@
     }
   }
 
+  /*
+   * `main` recibe el foco por script al cambiar de pantalla (R-005), y por eso
+   * hereda el anillo general: un recuadro de dos tonos alrededor de **todo** el
+   * contenido, de casi mil píxeles de ancho.
+   *
+   * No vale con `focus:outline-none`, que solo apaga el `outline`: el
+   * `box-shadow` del anillo sobrevive y el recuadro se sigue viendo. Por eso la
+   * anulación está aquí, y no en la clase del componente.
+   *
+   * En su lugar, el foco en `main` se marca con una **barra en el borde
+   * superior**: se ve de un vistazo que el foco ha entrado en el contenido y
+   * dice dónde ha empezado, sin encerrar el texto en una caja azul que parece
+   * un error. El `inset` no mueve nada, así que la página no salta al aparecer.
+   *
+   * El color es el del anillo, con 4.86:1 sobre el fondo de la página (R-003).
+   */
+  main:focus-visible {
+    outline: none;
+    box-shadow: inset 0 4px 0 0 var(--color-focus-ring);
+  }
+
+  /*
+   * En `forced-colors` el navegador borra los `box-shadow`, y con ellos la
+   * barra, así que ahí el indicador tiene que ser el `outline`. Va **hacia
+   * dentro** (`outline-offset` negativo) para no dibujar el recuadro exterior
+   * que estamos quitando a propósito.
+   */
+  @media (forced-colors: active) {
+    main:focus-visible {
+      outline: 3px solid CanvasText;
+      outline-offset: -3px;
+    }
+  }
+
   /* Reduce el movimiento: sin desplazamiento, sin escalado, sin desenfoque.
-     Lo que queda es un cambio de opacidad, que no provoca vértigo. */
+     Lo que queda es un cambio de opacidad, que no provoca vértigo (R-008). */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -115,12 +232,77 @@
       scroll-behavior: auto !important;
     }
   }
+
+  /* El scroll suave solo cuando la persona no ha pedido menos movimiento. */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
 }
 
 @layer components {
-  /* Botón base. El hover vive detrás de `@media (hover: hover)`: en táctil,
-     `:hover` se queda pegado tras un toque y parece un estado seleccionado
-     que no lo está. */
+  /* --- Tarjetas ------------------------------------------------------------
+     La tarjeta es **clara**, con borde y una sombra muy leve para el peso. El
+     color de acento va en una banda dentro, no de relleno: así el anillo de
+     foco siempre cae sobre blanco (4.51:1 mínimo) y no desaparece. */
+  .ui-card {
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-card);
+    background-color: var(--color-surface);
+    padding: 1.5rem;
+    /* Sombra para dar profundidad, no para dibujar estructura: los separadores
+       llevan borde (better-ui). Dos capas muy tenues, no una sombra dura. */
+    box-shadow:
+      0 1px 2px rgb(17 24 28 / 0.04),
+      0 4px 12px rgb(17 24 28 / 0.04);
+    transition-property: border-color, box-shadow;
+    transition-duration: var(--duration-press);
+    transition-timing-function: var(--ease-ui);
+  }
+
+  /* Al pasar el ratón, la tarjeta se separa del fondo con el borde del color de
+     acento. En Figma el hover cambiaba de verde a teal: un cambio de tono
+     inesperado, que además obligaba a comprobar el contraste de dos estados. */
+  @media (hover: hover) {
+    .ui-card--interactive:hover {
+      border-color: var(--card-accent, var(--color-brand));
+      box-shadow:
+        0 2px 4px rgb(17 24 28 / 0.06),
+        0 12px 24px rgb(17 24 28 / 0.08);
+    }
+  }
+
+  /* Banda de acento: el color del juego. Es decorativo, así que el glifo va
+     dentro con `aria-hidden` y el nombre del juego se lee en el título de al
+     lado (R-004). */
+  .ui-accent-band {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 100%;
+    block-size: 6rem;
+    border-radius: var(--radius-media);
+    background-color: var(--card-accent, var(--color-brand));
+    color: var(--color-surface);
+    font-size: var(--text-2xl);
+    font-weight: 700;
+  }
+
+  /* La misma banda, en cuadrado, para numerar una lista. Sin el `inline-size`
+     explícito, un elemento flexible con `align-self: start` se encoge al ancho
+     de su contenido y una «1» se convierte en una píldora de 10px. */
+  .ui-accent-band--chip {
+    inline-size: 4.5rem;
+    block-size: 4.5rem;
+    border-radius: var(--radius-control);
+    font-size: var(--text-xl);
+  }
+
+  /* --- Botones ------------------------------------------------------------
+     Todos pasan por `.ui-button`, que es donde vive el objetivo táctil de
+     44×44px. Ningún botón del proyecto escribe su propio `min-height`: si lo
+     hiciera, el mínimo se podría olvidar (R-002). */
   .ui-button {
     display: inline-flex;
     align-items: center;
@@ -136,8 +318,8 @@
     text-align: center;
     cursor: pointer;
     /* Se nombran las propiedades: `all` dispara transiciones que nadie
-       pidió y cuesta rendimiento. */
-    transition-property: background-color, border-color, scale;
+       pidió y cuesta rendimiento (better-ui). */
+    transition-property: background-color, border-color, color, scale;
     transition-duration: var(--duration-press);
     transition-timing-function: var(--ease-ui);
   }
@@ -147,6 +329,8 @@
     color: var(--color-surface);
   }
 
+  /* El hover vive detrás de `@media (hover: hover)`: en táctil, `:hover` se
+     queda pegado tras un toque y parece un estado seleccionado que no lo está. */
   @media (hover: hover) {
     .ui-button--primary:hover:not(:disabled) {
       background-color: var(--color-brand-strong);
@@ -154,7 +338,7 @@
   }
 
   /* Pulsar reduce a 0.96. Nunca por debajo: se nota como temblor y el texto
-     deja de leerse. Un botón deshabilitado no se comprime. */
+     deja de leerse. Un botón deshabilitado no se comprime (better-ui). */
   .ui-button--primary:active:not(:disabled) {
     scale: 0.96;
   }
@@ -164,8 +348,30 @@
     opacity: 0.55;
   }
 
-  /* Anillo de foco visible sin la escala del navegador por defecto. */
+  /* Variante secundaria: fondo claro y borde con contraste. El borde necesita
+     3:1 porque es lo que dibuja el contorno del control (R-003). */
+  .ui-button--secondary {
+    background-color: var(--color-surface);
+    color: var(--color-brand);
+    border-color: var(--color-border);
+  }
+
+  @media (hover: hover) {
+    .ui-button--secondary:hover:not(:disabled) {
+      background-color: var(--color-brand-soft);
+    }
+  }
+
+  .ui-button--secondary:active:not(:disabled) {
+    scale: 0.96;
+  }
+
+  /* --- Enlaces ------------------------------------------------------------
+     Un enlace es un control táctil también: mínimo 44px de alto (R-002). */
   .ui-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--spacing-target);
     color: var(--color-brand);
     text-decoration: underline;
     text-underline-offset: 0.2em;
@@ -177,6 +383,166 @@
   @media (hover: hover) {
     .ui-link:hover {
       color: var(--color-brand-strong);
+    }
+  }
+
+  /* Enlace de navegación de la banda. En Figma son palabras grandes, sin fondo
+     y centradas. El subrayado solo aparece en la página en la que se está: el
+     color y el fondo no bastan para decirlo (R-004).
+
+     El tamaño se ajusta con `--text-scale` (ver más abajo) en lugar de bajar en
+     mobile con un `text-sm`. Un `text-sm` de Tailwind está en px fijos: no
+     crecería con la fuente, y R-001 exige que el 200% affects también a la
+     navegación. Con `--text-scale` la banda se estrecha con el móvil y crece
+     con la fuente, que es lo que hace Figma a 1920px. */
+  .ui-navlink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--spacing-target);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-control);
+    color: var(--color-ink);
+    font-size: var(--text-nav-scale);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.25em;
+    transition-property: background-color, color;
+    transition-duration: var(--duration-press);
+    transition-timing-function: var(--ease-ui);
+  }
+
+  @media (hover: hover) {
+    .ui-navlink:hover {
+      background-color: rgb(17 24 28 / 0.06);
+    }
+  }
+
+  /* La página en la que se está. `aria-current="page"` es lo que lo anuncia el
+     lector de pantalla; esto solo lo hace visible. */
+  .ui-navlink[aria-current='page'] {
+    background-color: var(--color-surface);
+  }
+
+  /* --- Campos de formulario ----------------------------------------------- */
+  .ui-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    /* El ancho fluye y nunca supera el contenedor: es lo que evita el scroll
+       horizontal a 360px (R-010). */
+    width: 100%;
+    max-width: 30rem;
+    font-size: var(--text-lg);
+  }
+
+  .ui-field__label {
+    font-weight: 600;
+  }
+
+  /* La pista de ayuda se conecta con `aria-describedby`, no se suelta suelta. */
+  .ui-field__hint {
+    color: var(--color-ink-muted);
+    font-size: var(--text-base);
+  }
+
+  .ui-field__input {
+    min-height: var(--spacing-target);
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-control);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: inherit;
+    font-size: var(--text-lg);
+    /* 16px es el mínimo en iOS: por debajo Safari hace zoom al enfocar y la
+       página se desplaza sola. `var(--text-lg)` lo garantiza. */
+  }
+
+  .ui-field__input:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  /* Estado de error: el borde se pinta con el color de peligro **y** el campo
+     queda marcado con `aria-invalid`, para que el color nunca sea la única
+     señal (R-004). El mensaje de error siempre acompaña al campo (R-009). */
+  .ui-field__input[aria-invalid='true'] {
+    border-color: var(--color-danger);
+    border-width: 3px;
+  }
+
+  /* --- Estados con icono y texto -------------------------------------------
+     R-004: ningún estado se transmite solo por color. Este bloque pinta la
+     forma y el color; el icono y el texto los pone siempre el componente que lo
+     usa, de forma que quitar el color no deja nada sin entender. */
+  .ui-status {
+    display: inline-flex;
+    /* `flex-start` y no `center`: cuando el texto ocupa varias líneas —con la
+       fuente al 200% en un móvil de 360px lo ocupa—, el icono se alinea con la
+       primera y no queda flotando en mitad del bloque. */
+    align-items: flex-start;
+    gap: 0.5rem;
+    /* Nunca más ancho que su contenedor. */
+    max-width: 100%;
+    font-weight: 600;
+  }
+
+  /*
+   * Sin `min-width: 0`, un elemento flexible no baja de su tamaño de contenido:
+   * el texto largo de un estado no se partiría nunca y en un móvil de 360px
+   * saldría una barra de scroll horizontal (R-010). Con esto, el texto se
+   * parte dentro del ancho disponible y el estado se lee entero.
+   */
+  .ui-status__text {
+    min-width: 0;
+  }
+
+  .ui-status__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border: 2px solid currentColor;
+    border-radius: 9999px;
+    font-size: var(--text-base);
+    line-height: 1;
+  }
+
+  /* --- Entrada con movimiento ----------------------------------------------
+     R-008: la animación de entrada solo existe si la persona no ha pedido menos
+     movimiento. Con `prefers-reduced-motion: reduce` el elemento aparece, sin
+     desplazarse ni escalarse. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ui-enter {
+      animation: ui-enter var(--duration-enter) var(--ease-ui) both;
+    }
+  }
+
+  /* Los escalones de 100ms separan título, texto y acciones, que es lo que
+     marca la jerarquía sin gritar (better-ui). */
+  .ui-enter--delay-1 {
+    animation-delay: 100ms;
+  }
+
+  .ui-enter--delay-2 {
+    animation-delay: 200ms;
+  }
+
+  @keyframes ui-enter {
+    from {
+      opacity: 0;
+      filter: blur(4px);
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0);
     }
   }
 }

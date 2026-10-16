@@ -46,6 +46,7 @@ Decisiones de producto que definen el proyecto:
 | Entorno | Docker Compose, **local sin despliegue** |
 | Pruebas E2E y accesibilidad | Playwright |
 | Pruebas unitarias | `pytest` + Vitest + React Testing Library |
+| Lenguaje visual | Tokens derivados del diseño de Figma, adaptados a WCAG 2.2 AA ([`Docs/sistema-diseno.md`](Docs/sistema-diseno.md)) |
 
 Código en inglés, interfaz y documentación en español, contenido de juegos
 solo en español.

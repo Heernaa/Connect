@@ -8,7 +8,7 @@
 > la constitución gana. Si el conflicto es inevitable, hay que pedir
 > aprobación explícita y documentar la excepción en el registro de decisiones.
 
-**Estado:** v0.9 — placeholders de las specs 001-005 resueltos, listo para construir
+**Estado:** v0.10 — sistema de tokens de la spec 006 documentado
 **Última actualización:** 2026-10-16
 
 ---
@@ -34,6 +34,7 @@
 | Origen del contenido de juegos | PostgreSQL, servido por la API (§2.1.2)              |
 | Alcance                      | MVP: un único set por juego, sin rotación diaria (§2.1.3) |
 | Identidad visible            | Anónima. Cada usuario tiene un alias autogenerado (§6.5)  |
+| Lenguaje visual              | Tokens derivados de Figma, adaptados a WCAG 2.2 AA            |
 | Accesibilidad                | WCAG 2.2 nivel AA (§4)                                   |
 | Transporte del chat          | Polling (§2.3)                                           |
 | Moderación del chat          | No incluida. Bloqueo sí, reporte no (§6.8)                |
@@ -826,6 +827,7 @@ Esta constitución cambia explícitamente, nunca por inercia.
 | v0.7    | 2026-10-15 | Contenido del MVP definido y cargado en `data/seed_v0.sql` (§2.1.8): Wordle `LUNAS`, 1 acertijo, y Paraulógic con letras A E N R S T y 21 palabras. | —     |
 | v0.8    | 2026-10-15 | Método **SDD spec-anchored** (§0.3, nueva): la spec es la fuente de verdad, requisitos numerados, una rama por spec. Frontend en **JavaScript** (§3.2), con el tipado fuerte concentrado en la frontera del servidor. | —     |
 | v0.9    | 2026-10-16 | Placeholders de las specs 001-005 resueltos (§0.1): `pytest`+`httpx` (§5), contraseña mínima de 8 caracteres (§6.2), Wordle base 100 con −10 % por intento y Acertijo 10 puntos fijos (§2.1.5). Se añade `[ACERTIJO_POINTS]`, que faltaba en §0.2 y bloqueaba la tarea 5.13 de la spec 005. Ningún principio se relaja. | —     |
+| v0.10   | 2026-10-16 | Lenguaje visual del frontend: sistema de tokens derivado del diseño de Figma y adaptado a WCAG 2.2 AA, documentado en [`sistema-diseno.md`](./sistema-diseno.md). El color de Figma se conserva; los valores que fallaban el contraste se sustituyen por otros medidos. Ningún principio se relaja. | — |
 
 ---
 
@@ -875,3 +877,4 @@ Cada placeholder resuelto se anotará aquí con su justificación.
 | 2026-10-16 | Wordle: **base 100, −10 % por intento**                    | Es la única puntuación con componente de eficiencia (§2.1.5) |
 | 2026-10-16 | Acertijo: **10 puntos fijos** al acertar                   | Se premia el acierto, nunca la rapidez ni el número de intentos (§2.1.5) |
 | 2026-10-16 | commits y ramas **autorizados explícitamente por el equipo** | La constitución exige autorización explícita para commitear (§8.4) |
+| 2026-10-16 | **Lenguaje visual:** tokens derivados del diseño de Figma, adaptados a WCAG 2.2 AA | Se conserva la forma y el color de marca; cambian los valores que fallaban el contraste. Detalle en [`sistema-diseno.md`](./sistema-diseno.md) |
