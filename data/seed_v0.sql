@@ -24,6 +24,29 @@
 BEGIN;
 
 -- -----------------------------------------------------------------------------
+-- Catálogo de juegos
+-- -----------------------------------------------------------------------------
+-- Nombre y descripción de cada juego. También es contenido: la API lo sirve y el
+-- cliente no lo escribe (§2.1.2). `sort_order` fija el orden en que se muestran.
+--
+-- Las descripciones NO revelan nada de la solución: describen en qué consiste el
+-- juego, no qué hay que responder.
+-- -----------------------------------------------------------------------------
+
+INSERT INTO games (game_id, name, description, sort_order)
+VALUES
+    ('paraulogic', 'Paraulógic',
+     'Un conjunto de letras forma varias palabras. Hay que encontrarlas todas, sin límite de intentos y sin poder perder.',
+     1),
+    ('wordle', 'Wordle',
+     'Adivina una palabra de cinco letras en seis intentos. Después de cada intento sabes si cada letra está, y en qué sitio.',
+     2),
+    ('riddle', 'Acertijo',
+     'Una pregunta con una única respuesta correcta. Se puntúa acertar, no la rapidez: puedes pensarlo tanto tiempo como quieras.',
+     3)
+ON CONFLICT (game_id) DO NOTHING;
+
+-- -----------------------------------------------------------------------------
 -- Paraulógic — conjunto de letras y palabras
 -- -----------------------------------------------------------------------------
 -- Regla del juego: cada palabra usa SOLO letras del conjunto, y ninguna letra
@@ -78,23 +101,26 @@ ON CONFLICT (set_id, word) DO NOTHING;
 -- Pistas: una por palabra. Para las más literarias la pista da una definición
 -- indirecta en lugar de la letra o la longitud, para no resolverla del todo.
 --
--- El texto de una pista NUNCA contiene la palabra: pedir ayuda no puede
--- regalar la solución (spec 004 · R-003).
+-- El texto de una pista NUNCA contiene la palabra: pedir ayuda no puede regalar
+-- la solución (spec 004 · R-003). Tampoco vale casi contenerla: «el imperativo de
+-- "traer"» ya te dice que la palabra es TRAE, así que la pista tiene que describir
+-- lo que significa sin escribirla.
+-- La tabla de pistas va primera en el FROM y las palabras se unen por su texto.
+-- Si el orden fuera el contrario, cada palabra se emparejaría con la primera
+-- pista de la lista y todas acabarían con la misma ayuda.
 INSERT INTO paraulogic_hints (set_id, word_id, hint_text, hint_order)
 SELECT s.id, w.id, v.hint_text, 1
-FROM paraulogic_sets s
-JOIN paraulogic_words w ON w.set_id = s.id
-CROSS JOIN (VALUES
+FROM (VALUES
     ('ESTAR',  'Cinco letras. Es el verbo de "me siento bien aquí".'),
-    ('TRAE',   'Es el imperativo de "traer".'),
-    ('SETA',   'Es una seta de champiñón. También es "seta" de vino.'),
+    ('TRAE',   'Cinco letras. Es el imperativo de un verbo de movimiento.'),
+    ('SETA',   'Cinco letras. Es un hongo comestible que se puede comer frita.'),
     ('RESTA',  'Se escribe como "resto", pero con A al principio.'),
     ('TENAR',  'Es el infinitivo del verbo "tener".'),
     ('RENTA',  'Empieza por R y acaba en A. Seis letras.'),
     ('ARTE',   'Empieza por A y acaba en E. Son cuatro letras.'),
     ('ARTES',  'Es el plural de "arte".'),
     ('TERNAS', 'Grupos de tres elementos. Seis letras.'),
-    ('ANTER',  'Un "anterior" sin la I. Seis letras.'),
+    ('ANTER',  'Seis letras. Va delante en el orden o en el espacio.'),
     ('ERAN',   'Es el pasado del verbo "ser", en plural.'),
     ('SERA',   'Es el futuro del verbo "ser". Cuatro letras.'),
     ('SEN',    'Pronombre que sustituye a "esa persona". Tres letras.'),
@@ -107,7 +133,8 @@ CROSS JOIN (VALUES
     ('ASTER',  'Es una flor con forma de estrella. Seis letras.'),
     ('TRANSE', 'Es una finca donde se pastan las ovejas. Seis letras.')
 ) AS v(word, hint_text)
-WHERE s.letters = 'AENRST'
+JOIN paraulogic_sets s ON s.letters = 'AENRST'
+JOIN paraulogic_words w ON w.set_id = s.id AND w.word = v.word
 ON CONFLICT (set_id, word_id, hint_order) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
@@ -142,12 +169,13 @@ COMMIT;
 -- =============================================================================
 -- VERIFICACIÓN
 -- =============================================================================
--- Debe devolver: 1 set, 21 palabras, 21 pistas, 1 palabra de Wordle y 1
--- acertijo. El test de integridad de la spec 002 falla si alguna cifra no
+-- Debe devolver: 3 juegos, 1 set, 21 palabras, 21 pistas, 1 palabra de Wordle
+-- y 1 acertijo. El test de integridad de la spec 002 falla si alguna cifra no
 -- coincide, así que esta consulta es solo para revisarla a ojo.
 -- =============================================================================
 
-SELECT 'paraulogic_sets'   AS tabla, COUNT(*) AS filas FROM paraulogic_sets
+SELECT 'games'              AS tabla, COUNT(*) AS filas FROM games
+UNION ALL SELECT 'paraulogic_sets'   AS tabla, COUNT(*) AS filas FROM paraulogic_sets
 UNION ALL SELECT 'paraulogic_words',  COUNT(*) FROM paraulogic_words
 UNION ALL SELECT 'paraulogic_hints',  COUNT(*) FROM paraulogic_hints
 UNION ALL SELECT 'wordle_words',      COUNT(*) FROM wordle_words

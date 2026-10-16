@@ -25,6 +25,24 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base
 
 
+class Game(Base):
+    """Catálogo de juegos: identificador, nombre y descripción (R-001 de la spec 004).
+
+    El nombre y la descripción son **contenido**, igual que las palabras: viven en
+    la base de datos y los sirve la API, no están escritos en el cliente (§2.1.2).
+    """
+
+    __tablename__ = "games"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    game_id: Mapped[str] = mapped_column(String(32), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    sort_order: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
+
+    __table_args__ = ()
+
+
 class ParaulogicSet(Base):
     """Un conjunto de letras del que se forman varias palabras.
 

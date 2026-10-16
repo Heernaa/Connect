@@ -1,6 +1,6 @@
 # Spec 004 — API de contenido de los juegos
 
-**Estado:** pendiente
+**Estado:** implementada
 **Fase:** 4a de 7
 **Constitución:** §2.1.2 (contenido vía API), §2.1.4 (juegos)
 
@@ -103,19 +103,19 @@ manipularse.
 
 ## 4. Criterios de aceptación
 
-- [ ] `GET /api/games` funciona sin iniciar sesión.
-- [ ] `GET /api/games` **no** contiene la palabra de Wordle ni la respuesta del
+- [x] `GET /api/games` funciona sin iniciar sesión.
+- [x] `GET /api/games` **no** contiene la palabra de Wordle ni la respuesta del
       acertijo.
-- [ ] `GET /api/games/paraulogic` devuelve las letras y el número de palabras
+- [x] `GET /api/games/paraulogic` devuelve las letras y el número de palabras
       pendientes, sin las soluciones.
-- [ ] Una palabra ya encontrada no aparece en la respuesta.
-- [ ] La API de pistas prioriza las palabras poco comunes.
-- [ ] La pista no contiene la palabra que revela.
-- [ ] Pedir pistas **no** descuenta puntos.
-- [ ] `GET /api/games/wordle` no devuelve la palabra si el jugador ya terminó.
-- [ ] `GET /api/games/acertijo` no contiene `accepted_answer`.
-- [ ] La respuesta del acertijo se acepta con tildes y mayúsculas distintas.
-- [ ] `GET /api/games/wordle` **no** contiene la palabra cuando no hay sesión.
+- [x] Una palabra ya encontrada no aparece en la respuesta.
+- [x] La API de pistas prioriza las palabras poco comunes.
+- [x] La pista no contiene la palabra que revela.
+- [x] Pedir pistas **no** descuenta puntos.
+- [x] `GET /api/games/wordle` no devuelve la palabra si el jugador ya terminó.
+- [x] `GET /api/games/acertijo` no contiene `accepted_answer`.
+- [x] La respuesta del acertijo se acepta con tildes y mayúsculas distintas.
+- [x] `GET /api/games/wordle` **no** contiene la palabra cuando no hay sesión.
 
 ## 5. Dependencias y referencias
 

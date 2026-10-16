@@ -7,7 +7,14 @@ no aparece en las migraciones.
 
 from app.models.auth import AuthSession, LoginAttempt
 from app.models.base import Base
-from app.models.content import ParaulogicHint, ParaulogicSet, ParaulogicWord, Riddle, WordleWord
+from app.models.content import (
+    Game,
+    ParaulogicHint,
+    ParaulogicSet,
+    ParaulogicWord,
+    Riddle,
+    WordleWord,
+)
 from app.models.session import (
     GameSession,
     ParaulogicFoundWord,
@@ -20,6 +27,7 @@ from app.models.user import User, normalize_username
 __all__ = [
     "AuthSession",
     "Base",
+    "Game",
     "GameSession",
     "LoginAttempt",
     "ParaulogicFoundWord",

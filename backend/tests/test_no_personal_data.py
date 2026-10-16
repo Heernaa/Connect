@@ -103,22 +103,43 @@ def test_no_table_stores_a_personal_data_column(seeded_db_session) -> None:
 def test_no_table_stores_a_free_text_identity_field(seeded_db_session) -> None:
     """R-002: ni siquiera una columna de texto libre para el nombre real.
 
-    Busca el patrón típico de un nombre con apellidos, por si alguien lo añadiera
-    con un nombre que no estuviera en la lista anterior.
+    Busca los nombres típicos de una identidad completa, por si alguien añadiera
+    una columna con un nombre que no estuviera en la lista anterior.
+
+    `users.username` queda fuera a propósito: ahí se guarda el nombre de usuario
+    que elige la persona, que §2.2 exige y que no se muestra en ningún sitio.
+    `games.name` guarda el nombre **del juego** («Paraulógic»), no el de nadie, y
+    por eso es la única excepción de la lista.
     """
+    identity_column_names = {
+        "name",
+        "full_name",
+        "real_name",
+        "surname",
+        "nombre",
+        "nombre_completo",
+    }
+
+    #: Único sitio donde una columna `name` no guarda el nombre de una persona.
+    allowed_tables = {"games"}
+
     rows = seeded_db_session.execute(
         text(
             """
             SELECT table_name, column_name
             FROM information_schema.columns
-            WHERE table_schema = 'public' AND data_type IN ('text', 'character varying')
+            WHERE table_schema = 'public'
+              AND data_type IN ('text', 'character varying')
             """
         )
     ).all()
 
-    text_columns = {f"{table}.{column}" for table, column in rows}
-    identity_columns = {c for c in text_columns if c.endswith(".name")}
+    identity_columns = {
+        f"{table}.{column}"
+        for table, column in rows
+        if column.lower() in identity_column_names and table not in allowed_tables
+    }
 
     assert identity_columns == set(), (
-        f"Estas columnas de texto podrían guardar el nombre real: {identity_columns}"
+        f"Estas columnas de texto podrían guardar el nombre real de alguien: {identity_columns}"
     )

@@ -79,6 +79,38 @@ async def api_error_handler(request: Request, error: Exception) -> JSONResponse:
     return error_response(error.message, error.status_code)
 
 
+#: Los errores que lanza `HTTPException` con el detalle de Starlette (`Not Found`,
+#: `Method Not Allowed`) son texto interno en inglés. Se sustituyen por su
+#: equivalente en claro, para que **todos** los errores tengan la misma forma y en
+#: el mismo idioma (§4.1).
+STANDARD_DETAILS = {
+    "Not Found",
+    "Method Not Allowed",
+    "Forbidden",
+    "Unauthorized",
+}
+
+HTTP_STATUS_MESSAGES = {
+    401: NOT_SIGNED_IN,
+    403: "No tienes permiso para hacer esto.",
+    404: "No se ha encontrado lo que buscas.",
+    405: "Esta acción no está disponible.",
+}
+
+
+async def http_exception_handler(request: Request, error: Exception) -> JSONResponse:
+    """Da a los errores HTTP la misma forma que al resto de errores."""
+    status_code = getattr(error, "status_code", 500)
+    detail = getattr(error, "detail", None)
+
+    if not isinstance(detail, str) or detail in STANDARD_DETAILS:
+        message = HTTP_STATUS_MESSAGES.get(status_code, GENERIC_ERROR)
+    else:
+        message = detail
+
+    return error_response(message, status_code)
+
+
 async def validation_error_handler(
     request: Request, error: Exception
 ) -> JSONResponse:
