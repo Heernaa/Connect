@@ -120,7 +120,7 @@ cualquier otra instrucción.
 
 | Spec | Nombre | Cubre | Estado |
 | --- | --- | --- | --- |
-| [001](Docs/specs/001-entorno-local/) | Entorno local | `docker compose`, esqueletos FastAPI y Vite, git | Pendiente |
+| [001](Docs/specs/001-entorno-local/) | Entorno local | `docker compose`, esqueletos FastAPI y Vite, git | **Implementada** |
 | [002](Docs/specs/002-esquema-datos/) | Esquema de datos | Modelos, Alembic, carga del seed, test de integridad | Pendiente |
 | [003](Docs/specs/003-autenticacion/) | Autenticación | argon2id, registro, login, sesiones, alias anónimo | Pendiente |
 | [004](Docs/specs/004-api-contenido/) | API de contenido | Endpoints de los tres juegos, pistas, validación | Pendiente |
@@ -145,27 +145,65 @@ cualquier otra instrucción.
     └── specs/            # Especificaciones 001 a 008
 ```
 
-`backend/` y `frontend/` se crean en la spec 001. La estructura de carpetas
-estable está definida en [`spec 001 · R-007`](Docs/specs/001-entorno-local/spec.md).
+`backend/` y `frontend/` se crean en la spec 001. Cada carpeta tiene su propio
+`README.md` con su propósito, y no se crea código fuera de ellas sin
+justificarlo (`spec 001 · R-007`).
 
 ---
 
 ## 🚀 Puesta en marcha
 
-> **Estado actual: fase de especificación.** El repositorio contiene la
-> constitución, las ocho especificaciones con sus planes de tareas y el seed del
-> contenido de los juegos. El código empieza con la spec 001.
+> **Estado actual: spec 001 implementada.** El proyecto arranca con un solo
+> comando. Las specs 002 a 005 están en curso.
+
+**Requisitos:** Docker y Docker Compose. **Ninguna credencial externa es
+necesaria** (§7.0). El proyecto vive en local y no se despliega.
 
 ```bash
 git clone <url-del-repositorio> Connect
 cd Connect
-docker compose up
+docker compose up --build
 ```
 
-Levantará PostgreSQL, la API y el frontend. El arranque detallado paso a paso se
-documentará en la spec 001 (`R-006`) y en los `README.md` de cada carpeta.
+Eso levanta los tres servicios:
 
-Requisitos: Docker y Docker Compose. **Ninguna credencial externa es necesaria.**
+| Servicio | Dirección | Qué es |
+| --- | --- | --- |
+| `frontend` | <http://localhost:5173> | La interfaz |
+| `backend` | <http://localhost:8000> | La API. Documentación interactiva en `/docs` |
+| `db` | `localhost:5432` | PostgreSQL 17 |
+
+La primera vez tarda unos minutos porque construye las imágenes. Después,
+`docker compose up` ya arranca en segundos.
+
+### Pruebas
+
+```bash
+docker compose exec backend pytest          # Pruebas del backend
+docker compose exec backend ruff check .   # Linter del backend
+docker compose exec frontend npm run lint  # Linter del frontend
+docker compose exec frontend npm run build # Compila el frontend
+```
+
+### Configuración
+
+No hace falta crear ningún `.env`: `docker compose` ya inyecta los valores de
+desarrollo. Si quieres cambiarlos, copia [`.env.example`](.env.example) a
+`.env`, que **nunca** se versiona (§6.1).
+
+En producción, `SECRET_KEY` es obligatoria y el backend **se niega a arrancar**
+si falta o si se deja la de desarrollo. Un despliegue inseguro que arranca en
+silencio es peor que uno que se niega a arrancar.
+
+### Parar y limpiar
+
+```bash
+docker compose down      # Para los servicios, conserva los datos
+docker compose down -v   # Para y borra también el volumen de PostgreSQL
+```
+
+> `down -v` **borra la base de datos**, con todo su contenido. En el entorno
+> local el contenido se recupera volviendo a cargar el seed (§2.1.3).
 
 ---
 

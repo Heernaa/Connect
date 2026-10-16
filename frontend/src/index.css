@@ -1,0 +1,182 @@
+@import 'tailwindcss';
+
+/* Inter se sirve desde el propio paquete npm, no desde un CDN.
+   Una fuente de terceros sería una petición a un servidor ajeno que además
+   puede rastrear al usuario (§6.4). Autoalojada no hay peticiones salientes. */
+@import '@fontsource-variable/inter/wght.css';
+
+/* ---------------------------------------------------------------------------
+   Tokens de diseño
+   ---------------------------------------------------------------------------
+   Origen: el diseño de Connect en Figma, adaptado a WCAG 2.2 AA (§4).
+
+   Lo que se mantiene del diseño: la barra de navegación en cian `#AAFFFF`, la
+   tipografía Inter, la escala tipográfica grande (48px en la navegación) y el
+   radio redondeado de 16px en las tarjetas.
+
+   Lo que se cambia, y por qué: los colores que fallan el contraste de 4.5:1.
+     · Verde de tarjeta  #00C000 sobre blanco = 2.46:1  →  #166534 = 7.13:1
+     · Rojo de botón     #FF0000 sobre blanco = 4.00:1  →  #B3261E = 6.54:1
+     · Gris de borde     #9AA5AD sobre blanco = 2.51:1  →  #6B7680 = 4.64:1
+   Se conserva la forma y el color de marca; cambia el valor para que el texto
+   se pueda leer. Cada ratio está anotado junto a su token.
+   --------------------------------------------------------------------------- */
+@theme {
+  --font-sans:
+    'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Fuente base 16px. Todas las medidas usan rem, así que el zoom del
+     navegador al 200% (WCAG 1.4.4, §4.1) escala el texto y los espacios. */
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-nav: 3rem; /* 48px: el tamaño de la navegación en Figma */
+
+  /* Superficies y texto */
+  --color-page: #f2f4f5;
+  --color-surface: #ffffff;
+  --color-ink: #11181c; /* 16.25:1 sobre --color-page */
+  --color-ink-muted: #4a5560; /* 6.90:1 sobre --color-page */
+  --color-nav: #aaffff; /* Figma. Negro sobre este color: 18.46:1 */
+  --color-nav-ink: #11181c;
+
+  /* Marca y acciones */
+  --color-brand: #00626b; /* 7.10:1 con texto blanco */
+  --color-brand-strong: #00505a; /* hover: 9.15:1 con texto blanco */
+  --color-success: #166534; /* 7.13:1 con texto blanco */
+  --color-danger: #b3261e; /* 6.54:1 con texto blanco */
+
+  /* Bordes: 4.64:1 sobre blanco. Los controles necesitan 3:1 mínimo. */
+  --color-border: #6b7680;
+  --color-border-soft: #d7dde1;
+
+  /* Foco: anillo de dos tonos, claro dentro y oscuro fuera. Un solo color no
+     se ve sobre el cian ni sobre el verde de tarjeta, así que se usan los dos. */
+  --color-focus-ring: #0b5fff; /* 5.13:1 sobre blanco */
+  --color-focus-halo: #ffffff;
+
+  /* Radios. Radio exterior = radio interior + padding de la capa (§Better UI). */
+  --radius-card: 1rem; /* 16px: el radio de las tarjetas en Figma */
+  --radius-inner: 0.25rem; /* 4px, con 12px de padding: 4 + 12 = 16 */
+  --radius-control: 0.75rem;
+
+  /* Movimiento */
+  --duration-press: 150ms;
+  --duration-enter: 300ms;
+  --ease-ui: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Objetivo táctil mínimo (§4.1). */
+  --spacing-target: 2.75rem; /* 44px */
+}
+
+@layer base {
+  html {
+    font-size: 100%;
+  }
+
+  body {
+    background-color: var(--color-page);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.5;
+  }
+
+  /* Foco visible en TODO lo que recibe foco. El halo claro va pegado al
+     elemento y el anillo oscuro por fuera: se ve tanto sobre fondos claros
+     como oscuros, cosa que un único color no consigue. */
+  :focus-visible {
+    outline: 3px solid var(--color-focus-halo);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px var(--color-focus-ring);
+  }
+
+  /* En forced-colors el navegador sustituye los colores, y `box-shadow` se
+     elimina. El `outline` sobrevive y el foco sigue viéndose. El borde
+     transparente mantiene el mismo tamaño de caja para que nada se mueva. */
+  @media (forced-colors: active) {
+    :focus-visible {
+      outline: 3px solid CanvasText;
+      outline-offset: 2px;
+    }
+  }
+
+  /* Reduce el movimiento: sin desplazamiento, sin escalado, sin desenfoque.
+     Lo que queda es un cambio de opacidad, que no provoca vértigo. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Botón base. El hover vive detrás de `@media (hover: hover)`: en táctil,
+     `:hover` se queda pegado tras un toque y parece un estado seleccionado
+     que no lo está. */
+  .ui-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: var(--spacing-target);
+    min-width: var(--spacing-target);
+    padding: 0.75rem 1.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+    font-weight: 600;
+    font-size: var(--text-lg);
+    text-align: center;
+    cursor: pointer;
+    /* Se nombran las propiedades: `all` dispara transiciones que nadie
+       pidió y cuesta rendimiento. */
+    transition-property: background-color, border-color, scale;
+    transition-duration: var(--duration-press);
+    transition-timing-function: var(--ease-ui);
+  }
+
+  .ui-button--primary {
+    background-color: var(--color-brand);
+    color: var(--color-surface);
+  }
+
+  @media (hover: hover) {
+    .ui-button--primary:hover:not(:disabled) {
+      background-color: var(--color-brand-strong);
+    }
+  }
+
+  /* Pulsar reduce a 0.96. Nunca por debajo: se nota como temblor y el texto
+     deja de leerse. Un botón deshabilitado no se comprime. */
+  .ui-button--primary:active:not(:disabled) {
+    scale: 0.96;
+  }
+
+  .ui-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  /* Anillo de foco visible sin la escala del navegador por defecto. */
+  .ui-link {
+    color: var(--color-brand);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    transition-property: color;
+    transition-duration: var(--duration-press);
+    transition-timing-function: var(--ease-ui);
+  }
+
+  @media (hover: hover) {
+    .ui-link:hover {
+      color: var(--color-brand-strong);
+    }
+  }
+}

@@ -8,8 +8,8 @@
 > la constitución gana. Si el conflicto es inevitable, hay que pedir
 > aprobación explícita y documentar la excepción en el registro de decisiones.
 
-**Estado:** v0.8 — método SDD spec-anchored, JavaScript, listo para construir
-**Última actualización:** 2026-10-15
+**Estado:** v0.9 — placeholders de las specs 001-005 resueltos, listo para construir
+**Última actualización:** 2026-10-16
 
 ---
 
@@ -42,6 +42,10 @@
 | Entorno                      | Local. Sin despliegue (§7.0)                              |
 | Puntuación Paraulógic        | 1 punto por palabra encontrada (§2.1.5)                  |
 | Partida Paraulógic           | Intentos infinitos, no se puede perder, pausable (§2.1.4) |
+| Puntuación Wordle            | Base 100, −10 % por intento usado (§2.1.5)                |
+| Puntuación Acertijo          | 10 puntos fijos al acertar (§2.1.5)                       |
+| Longitud mínima de contraseña| 8 caracteres, sin exigir símbolos (§6.2)                  |
+| Framework de pruebas         | `pytest` + `httpx` (§5)                                   |
 | Retención del chat            | A definir. Sin moderación, el periodo se revisa (§2.3)   |
 | Contenido del MVP             | 1 Wordle, 1 acertijo, 1 set de Paraulógic (21 palabras) §2.1.8 |
 
@@ -52,16 +56,21 @@ preguntan.** Las dudas concretas están recogidas en [`dudas.md`](./dudas.md).
 
 | Placeholder         | Qué falta decidir                            | Bloquea |
 | ------------------- | -------------------------------------------- | ------- |
-| `[TEST_UNIT]`       | Framework de pruebas unitarias               | §5      |
 | `[CHAT_RETENTION]`  | Cuánto tiempo se conservan los mensajes       | §2.3    |
 | `[POLL_INTERVAL]`   | Cada cuántos segundos se consulta el chat     | §2.3    |
-| `[WORDLE_POINTS]`   | Fórmula de puntuación de Wordle              | §2.1.5  |
-| `[MIN_PASSWORD_LEN]`| Longitud mínima de contraseña                | §6.2    |
 | `[CONTENT_SIZE]`    | Cuántas palabras y acertijos hay en el MVP    | §2.1.3  |
 
 > **Regla:** un placeholder sin resolver **bloquea** el trabajo que dependa de él.
 
-> **Nota:** `[DEPLOY_TARGET]` y `[AUTH]` ya no son placeholders: el entorno es
+> **Nota.** Los placeholders `[TEST_UNIT]`, `[MIN_PASSWORD_LEN]`,
+> `[WORDLE_POINTS]` y `[ACERTIJO_POINTS]` se resolvieron el 2026-10-16 y
+> constan en §0.1. `ACERTIJO_POINTS` no figuraba en la tabla: se añadió al
+> detectar que la tarea 5.13 de la spec 005 dependía de él.
+>
+> `[CONTENT_SIZE]` sigue pendiente aunque §2.1.8 ya concrete el contenido del
+> MVP. No se marca como resuelto sin una decisión explícita del equipo.
+>
+> **Nota.** `[DEPLOY_TARGET]` y `[AUTH]` ya no son placeholders: el entorno es
 > local (§7.0) y la autenticación está definida (§2.2, §6.2).
 
 ### 0.3 Método de trabajo: SDD spec-anchored
@@ -310,12 +319,17 @@ Regla común a los tres juegos: **se premia haber acertado, nunca la rapidez**
 > registra como deuda en §11.
 
 **Wordle — una sola partida por jugador:**
-- Puntuación por acertar, con mejora cuanto **menos intentos** se necesiten.
+- Base de **100 puntos**, con bonificación cuanto **menos intentos** se necesiten.
+- Se resta un **10 % de la base por cada intento usado**. Acierto al primer
+  intento: 100. Acierto al sexto: 50.
 - Como solo se juega una vez, esta es la única puntuación con componente de
   eficiencia.
 
 **Acertijo:**
-- Se puntúa el acierto. Sin penalización por intentos ni por tiempo.
+- Se puntúa el acierto: **10 puntos fijos**.
+- **Sin penalización** por intentos ni por tiempo. Un jugador que se equivoca
+  tres veces y luego acierta cobra los mismos 10 puntos que uno que acierta a la
+  primera (§2.1.4, §1.1).
 
 **Regla transversal:** **quien completa algo, obtiene puntos.** Nadie se queda
 en cero por confundir dos letras o por pedir una pista, que son los errores más
@@ -520,7 +534,7 @@ Herramientas:
 
 | Capa                  | Herramienta                                    |
 | --------------------- | ---------------------------------------------- |
-| Backend unitarias     | `[TEST_UNIT]` (propuesta: `pytest`)            |
+| Backend unitarias e integración | `pytest` + `httpx`                  |
 | Frontend unitarias    | Vitest + React Testing Library                 |
 | E2E y accesibilidad   | **Playwright**                                 |
 
@@ -572,6 +586,8 @@ Requisitos obligatorios:
       ningún hash simple.
 - [ ] **Salt** por contraseña, generado automáticamente.
 - [ ] Coste de cómputo alto (argon2id o bcrypt con factor ≥ 12).
+- [ ] Longitud mínima de **8 caracteres**, sin exigir símbolos ni mayúsculas
+      (§6.3: las reglas complejas empujan a usar patrones predecibles).
 - [ ] En el registro, nunca se registra ni se escribe la contraseña en un log.
 - [ ] El nombre de usuario se compara en mayúsculas/minúsculas de forma
       consistente, para no crear cuentas duplicadas por mayúscula.
@@ -809,6 +825,7 @@ Esta constitución cambia explícitamente, nunca por inercia.
 | v0.6    | 2026-10-15 | Paraulógic: 1 punto por palabra, intentos infinitos, no se puede perder, pausa y reanudación (§2.1.7). Autenticación usuario+contraseña sin correo, contraseñas **hasheadas** (§6.2) y riesgos asumidos (§6.3). Chat: bloqueo sí, reporte no. Entorno **local sin despliegue** (§7.0). | —     |
 | v0.7    | 2026-10-15 | Contenido del MVP definido y cargado en `data/seed_v0.sql` (§2.1.8): Wordle `LUNAS`, 1 acertijo, y Paraulógic con letras A E N R S T y 21 palabras. | —     |
 | v0.8    | 2026-10-15 | Método **SDD spec-anchored** (§0.3, nueva): la spec es la fuente de verdad, requisitos numerados, una rama por spec. Frontend en **JavaScript** (§3.2), con el tipado fuerte concentrado en la frontera del servidor. | —     |
+| v0.9    | 2026-10-16 | Placeholders de las specs 001-005 resueltos (§0.1): `pytest`+`httpx` (§5), contraseña mínima de 8 caracteres (§6.2), Wordle base 100 con −10 % por intento y Acertijo 10 puntos fijos (§2.1.5). Se añade `[ACERTIJO_POINTS]`, que faltaba en §0.2 y bloqueaba la tarea 5.13 de la spec 005. Ningún principio se relaja. | —     |
 
 ---
 
@@ -853,3 +870,8 @@ Cada placeholder resuelto se anotará aquí con su justificación.
 | 2026-10-15 | Frontend en **JavaScript** (no TypeScript)                 | Decisión del equipo (§3.2)            |
 | 2026-10-15 | Método de desarrollo: **SDD spec-anchored**                | La spec es la fuente de verdad (§0.3) |
 | 2026-10-15 | Una rama por spec: `feature/spec-NNN-<slug>`               | Trazabilidad requisito → código (§0.3) |
+| 2026-10-16 | Pruebas backend con **`pytest` + `httpx`**                  | Estándar del sector; cubre unitarias e integración contra PostgreSQL real (§5) |
+| 2026-10-16 | Contraseña mínima de **8 caracteres**, sin símbolos ni mayúsculas | Las reglas complejas empujan a patrones predecibles (§6.3) |
+| 2026-10-16 | Wordle: **base 100, −10 % por intento**                    | Es la única puntuación con componente de eficiencia (§2.1.5) |
+| 2026-10-16 | Acertijo: **10 puntos fijos** al acertar                   | Se premia el acierto, nunca la rapidez ni el número de intentos (§2.1.5) |
+| 2026-10-16 | commits y ramas **autorizados explícitamente por el equipo** | La constitución exige autorización explícita para commitear (§8.4) |
