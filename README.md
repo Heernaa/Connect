@@ -7,6 +7,12 @@
 juegos son sencillos y sin prisas, pero lo que mantiene a la gente en la
 plataforma es ver la puntuación del resto, chatear y tener compañía.
 
+## 👥 Grupo
+
+- **Identificador del proyecto/grupo:** Connect. No consta un identificador
+  numérico asignado al grupo.
+- **Integrantes:** Ricard Martinez, Daniel Ivina, Noe Iniesta y Pol Hernandez.
+
 ---
 
 ## 🎯 Qué es
@@ -171,8 +177,11 @@ justificarlo (`spec 001 · R-007`).
 > tiene que firmarlo una persona ([`Docs/checklist-accesibilidad.md`](Docs/checklist-accesibilidad.md),
 > §4.3).
 
-**Requisitos:** Docker y Docker Compose. **Ninguna credencial externa es
-necesaria** (§7.0). El proyecto vive en local y no se despliega.
+**Requisitos previos:** Git y Docker Engine con Docker Compose v2 (`docker
+compose`). Se recomienda disponer de conexión a Internet la primera vez para
+descargar las imágenes de Docker y dependencias. No hace falta instalar Python,
+Node.js ni PostgreSQL en el equipo anfitrión, ni disponer de credenciales
+externas (§7.0). El proyecto se ejecuta en local y no se despliega.
 
 ```bash
 git clone <url-del-repositorio> Connect
@@ -199,6 +208,20 @@ docker compose exec db psql -U connect -d connect < data/seed_v0.sql   # Carga e
 ```
 
 El seed se puede ejecutar las veces que haga falta: no duplica nada.
+
+Este archivo carga **datos ficticios de contenido de los juegos**, no cuentas
+de demostración: una palabra de Wordle (`LUNAS`), un acertijo y 57 respuestas
+de Paraulógic. Para dejar la base de datos preparada desde cero, con los
+servicios ya iniciados, ejecuta:
+
+```bash
+docker compose exec backend alembic upgrade head
+docker compose exec -T db psql -U connect -d connect < data/seed_v0.sql
+```
+
+El script es idempotente y puede volver a ejecutarse sin duplicar el contenido.
+Las cuentas de usuario se crean desde la interfaz mediante **Crear cuenta**;
+no se incluyen usuarios ficticios ni contraseñas compartidas.
 
 ### Pruebas
 
@@ -253,6 +276,17 @@ docker compose down -v   # Para y borra también el volumen de PostgreSQL
 ---
 
 ## 📚 Documentación
+
+La documentación versionada está en [`Docs/`](Docs/README.md) y se puede
+consultar desde el repositorio del proyecto.
+
+- **Prototipo de Figma:** [Abuelos](https://www.figma.com/design/QCSNtnC9MKocVP36jPhDxi/Abuelos?node-id=58-183&p=f&t=aiMBIqLb7SYhSXBr-0).
+
+Antes de entregar, sustituid estos dos pendientes por sus enlaces y configurad
+ambos recursos para que cualquier persona con el enlace pueda verlos (solo
+lectura), incluido el profesorado. Los documentos y el prototipo deben estar
+alojados en un servicio accesible externamente; las rutas locales de este
+repositorio solo son accesibles a quienes tengan el proyecto.
 
 | Documento | Qué contiene |
 | --- | --- |
